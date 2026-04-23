@@ -1,0 +1,23 @@
+# --- Python & Environment ---
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+env/
+venv/
+ENV/
+
+# --- IDE & System Files ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Jupyter Notebooks ---
+.ipynb_checkpoints/
+
+# --- Project Specifics ---
+# In case you ever test with a local database again
+*_db/
+*.log
