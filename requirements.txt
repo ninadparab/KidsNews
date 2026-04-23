@@ -1,0 +1,3 @@
+google-genai
+newsapi-python
+sendgrid
