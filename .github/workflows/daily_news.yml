@@ -1,0 +1,33 @@
+name: Daily Kids News Digest
+
+on:
+  schedule:
+    # 7 AM PST is 2 PM (14:00) UTC. GitHub uses UTC time.
+    - cron: '0 14 * * *'
+  workflow_dispatch: # Allows you to run it manually for testing
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install google-genai newsapi-python sendgrid chromadb pandas
+
+      - name: Run news script
+        env:
+          # This links your GitHub Secrets to the script's environment variables
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          RECIPIENT_EMAILS: ${{ secrets.RECIPIENT_EMAILS }}
+        run: python main.py
