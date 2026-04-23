@@ -1,0 +1,147 @@
+import os
+import time
+import uuid
+from datetime import datetime
+from newsapi import NewsApiClient
+from google import genai
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail, Email, To, Content
+
+# --- 1. SETTING UP CLIENTS USING ENV VARS (Hidden from Public) ---
+# This replaces userdata.get()
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
+
+# Hiding your email IDs
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL')
+RECIPIENT_EMAILS = os.environ.get('RECIPIENT_EMAILS') 
+
+client = genai.Client(api_key=GEMINI_API_KEY)
+newsapi = NewsApiClient(api_key=NEWS_API_KEY)
+sg = SendGridAPIClient(api_key=SENDGRID_API_KEY)
+
+# --- 2. YOUR ORIGINAL FUNCTIONS (Kept as is) ---
+
+UNSAFE_KEYWORDS = [
+    "war", "killed", "attack", "terrorist", "violence",
+    "missile", "explosion", "dead", "conflict", "bomb",
+    "murder", "shooting", "protest", "arrested", "scandal"
+]
+
+def fetch_raw_news(sources=None, count=25):
+    try:
+        params = {'language': 'en', 'page_size': count}
+        if sources: params['sources'] = sources
+        top_headlines = newsapi.get_top_headlines(**params)
+        return top_headlines['articles']
+    except Exception as e:
+        print(f"Error fetching news: {e}")
+        return []
+
+def is_safe_basic(title, description):
+    full_text = f"{title} {description}".lower()
+    return not any(word in full_text for word in UNSAFE_KEYWORDS)
+
+def process_article_for_kids(article, age_group="8-10 years old"):
+    title = article.get('title', '')
+    description = article.get('description', '') or ""
+
+    if not is_safe_basic(title, description):
+        return "STATUS: REJECTED_BY_KEYWORD"
+
+    prompt = f"""
+    You are a professional Child-Safe News Editor.
+    Target Audience: {age_group}
+    ARTICLE:
+    Title: {title}
+    Description: {description}
+    TASK:
+    1. Determine if this article is truly safe for a child.
+    2. If UNSAFE: Respond only with 'STATUS: UNSAFE'.
+    3. If SAFE: Respond with:
+       STATUS: SAFE
+       KID_TITLE: [Catchy title]
+       KID_SUMMARY: [3 simple sentences]
+       DID_YOU_KNOW: [1 fun fact]
+    """
+    try:
+        # Note: Updated model name to a stable version
+        response = client.models.generate_content(
+            model="gemini-1.5-flash", 
+            contents=prompt
+        )
+        return response.text
+    except Exception as e:
+        return f"STATUS: ERROR ({str(e)})"
+
+def generate_newsletter(processed_results):
+    today = datetime.now().strftime("%B %d, %Y")
+    newsletter = f"**************************************************\n" \
+                 f"🌟 THE DAILY WHIZ: NEWS FOR BRAVE KIDS 🌟\n" \
+                 f"Date: {today}\n" \
+                 f"**************************************************\n"
+    
+    found_safe_news = False
+    for result in processed_results:
+        if "STATUS: SAFE" in result:
+            found_safe_news = True
+            lines = result.split('\n')
+            for line in lines:
+                if "KID_TITLE:" in line:
+                    newsletter += f"\n\n🚀 {line.replace('KID_TITLE:', '').strip().upper()}"
+                if "KID_SUMMARY:" in line:
+                    newsletter += f"\n{line.replace('KID_SUMMARY:', '').strip()}"
+                if "DID_YOU_KNOW:" in line:
+                    newsletter += f"\n💡 Fun Fact: {line.replace('DID_YOU_KNOW:', '').strip()}"
+            newsletter += "\n" + ("-" * 30)
+
+    if not found_safe_news:
+        newsletter += "\nNo kid-friendly news found today! ☀️"
+    return newsletter
+
+def send_newsletter(content, from_email_address, to_email_addresses):
+    # Split the comma-separated secret into a list
+    recipient_list = [email.strip() for email in to_email_addresses.split(',')]
+    
+    message = Mail(
+        from_email=from_email_address,
+        to_emails=recipient_list,
+        subject="🌞 Your Daily Kids' News Digest",
+        plain_text_content=content
+    )
+    try:
+        response = sg.send(message)
+        print(f"✅ Newsletter Sent! Status Code: {response.status_code}")
+    except Exception as e:
+        print(f"❌ Failed to send email: {e}")
+
+# --- 3. MAIN EXECUTION LOOP (Modified to remove ChromaDB) ---
+
+if __name__ == "__main__":
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    processed_stories = []
+
+    raw_articles = fetch_raw_news(count=25)
+    print(f"--- 🛡️ Starting Safety Pipeline [{today_str}] ---")
+
+    for i, art in enumerate(raw_articles):
+        result = process_article_for_kids(art)
+
+        if "REJECTED_BY_KEYWORD" in result:
+            print(f"🚫 Article {i+1}: Blocked by keyword filter.")
+        elif "STATUS: SAFE" in result:
+            print(f"✅ Article {i+1}: Safe & Rewritten.")
+            processed_stories.append(result)
+        else:
+            print(f"⚠️ Article {i+1}: Flagged as unsafe by AI.")
+
+        # Keep your sleep timer to stay within Free Tier limits
+        time.sleep(6)
+
+    final_edition = generate_newsletter(processed_stories)
+
+    if processed_stories:
+        send_newsletter(final_edition, SENDER_EMAIL, RECIPIENT_EMAILS)
+    else:
+        print("Skipping email: No safe stories found.")
