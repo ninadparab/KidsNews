@@ -68,7 +68,7 @@ def process_article_for_kids(article, age_group="8-10 years old"):
     try:
         # Note: Updated model name to a stable version
         response = client.models.generate_content(
-            model="gemini-2.5-flash-lite", 
+            model="gemini-3.1-flash-lite-preview", 
             contents=prompt
         )
         return response.text
