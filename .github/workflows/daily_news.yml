@@ -23,8 +23,8 @@ jobs:
           pip install google-genai newsapi-python sendgrid chromadb pandas
 
       - name: Run news script
+        working-directory: ./KidsNews  # <--- THIS TELLS GITHUB TO ENTER THE FOLDER
         env:
-          # This links your GitHub Secrets to the script's environment variables
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
