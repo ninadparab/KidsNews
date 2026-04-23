@@ -133,6 +133,8 @@ if __name__ == "__main__":
         elif "STATUS: SAFE" in result:
             print(f"✅ Article {i+1}: Safe & Rewritten.")
             processed_stories.append(result)
+        elif "STATUS: ERROR" in result:
+            print(f"❌ Article {i+1}: API error — {result}")
         else:
             print(f"⚠️ Article {i+1}: Flagged as unsafe by AI.")
 
