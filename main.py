@@ -68,7 +68,7 @@ def process_article_for_kids(article, age_group="8-10 years old"):
     try:
         # Note: Updated model name to a stable version
         response = client.models.generate_content(
-            model="gemini-1.5-flash", 
+            model="gemini-2.5-flash-lite", 
             contents=prompt
         )
         return response.text
@@ -137,7 +137,7 @@ if __name__ == "__main__":
             print(f"⚠️ Article {i+1}: Flagged as unsafe by AI.")
 
         # Keep your sleep timer to stay within Free Tier limits
-        time.sleep(6)
+        time.sleep(10)
 
     final_edition = generate_newsletter(processed_stories)
 
