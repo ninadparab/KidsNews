@@ -6,6 +6,10 @@ from newsapi import NewsApiClient
 from google import genai
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, Email, To, Content
+import firebase_admin
+from firebase_admin import credentials, firestore
+import json
+
 
 # --- 1. SETTING UP CLIENTS USING ENV VARS (Hidden from Public) ---
 # This replaces userdata.get()
@@ -20,6 +24,30 @@ RECIPIENT_EMAILS = os.environ.get('RECIPIENT_EMAILS')
 client = genai.Client(api_key=GEMINI_API_KEY)
 newsapi = NewsApiClient(api_key=NEWS_API_KEY)
 sg = SendGridAPIClient(api_key=SENDGRID_API_KEY)
+
+
+# --- Firebase setup ---
+def init_firebase():
+    service_account = json.loads(os.environ.get('FIREBASE_SERVICE_ACCOUNT'))
+    cred = credentials.Certificate(service_account)
+    firebase_admin.initialize_app(cred)
+    return firestore.client()
+
+db = init_firebase()
+
+# --- Save article to Firestore ---
+def save_article(kid_title, kid_summary, did_you_know, topics, country, language):
+    db.collection('articles').add({
+        'kid_title': kid_title,
+        'kid_summary': kid_summary,
+        'did_you_know': did_you_know,
+        'topics': topics,
+        'country': country,
+        'language': language,
+        'date': datetime.now().strftime('%Y-%m-%d'),
+        'created_at': firestore.SERVER_TIMESTAMP
+    })
+    print(f"💾 Saved to Firestore: {kid_title}")
 
 # --- 2. YOUR ORIGINAL FUNCTIONS (Kept as is) ---
 
@@ -130,9 +158,23 @@ if __name__ == "__main__":
 
         if "REJECTED_BY_KEYWORD" in result:
             print(f"🚫 Article {i+1}: Blocked by keyword filter.")
-        elif "STATUS: SAFE" in result:
+       elif "STATUS: SAFE" in result:
             print(f"✅ Article {i+1}: Safe & Rewritten.")
             processed_stories.append(result)
+            
+            # Parse and save to Firestore
+            lines = result.split('\n')
+            kid_title = kid_summary = did_you_know = ''
+            for line in lines:
+                if "KID_TITLE:" in line:
+                    kid_title = line.replace('KID_TITLE:', '').strip()
+                if "KID_SUMMARY:" in line:
+                    kid_summary = line.replace('KID_SUMMARY:', '').strip()
+                if "DID_YOU_KNOW:" in line:
+                    did_you_know = line.replace('DID_YOU_KNOW:', '').strip()
+            
+            save_article(kid_title, kid_summary, did_you_know, 
+                        topics=[], country='us', language='en')
         elif "STATUS: ERROR" in result:
             print(f"❌ Article {i+1}: API error — {result}")
         else:
