@@ -43,37 +43,72 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyB0nDZnYfTI5j15O9R73M123YxypRmKcrI",
-    authDomain: "kidsnews-f9c81.firebaseapp.com",
-    projectId: "kidsnews-f9c81",
-    storageBucket: "kidsnews-f9c81.appspot.com",
-    messagingSenderId: "35324641174",
-    appId: "1:35324641174:web:710e147be9c55f4b5de7b7"
+    apiKey: "your real value",
+    authDomain: "your real value",
+    projectId: "your real value",
+    storageBucket: "your real value",
+    messagingSenderId: "your real value",
+    appId: "your real value",
+    measurementId: "your real value"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  const auth = getAuth(app);
 
-  // Click handler for chips
-  document.querySelectorAll('.chip').forEach(chip => {
-    chip.onclick = () => chip.classList.toggle('selected');
+  document.querySelectorAll('.chip-group').forEach(group => {
+    const isMulti = ['topic-chips', 'source-chips'].includes(group.id);
+    group.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        if (isMulti) {
+          chip.classList.toggle('selected');
+        } else {
+          group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+        }
+      });
+    });
   });
 
-  document.getElementById('submit-btn').onclick = async () => {
-    const email = document.getElementById('email').value;
-    const topics = [...document.querySelectorAll('#topic-chips .selected')].map(c => c.dataset.value);
+  function getSelected(groupId) {
+    return [...document.querySelectorAll(`#${groupId} .chip.selected`)]
+      .map(c => c.dataset.value);
+  }
 
-    await signInAnonymously(auth);
-    const userRef = doc(db, 'artifacts', 'kids-news-explorer', 'users', auth.currentUser.uid, 'settings', 'preferences');
-    
-    await setDoc(userRef, { email, topics, createdAt: serverTimestamp() });
-    document.getElementById('form-container').style.display = 'none';
-    document.getElementById('success-msg').style.display = 'block';
+  window.handleSubmit = async () => {
+    const email = document.getElementById('email').value.trim();
+    if (!email || !email.includes('@')) {
+      alert('Please enter a valid email address.');
+      return;
+    }
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Subscribing...';
+
+    try {
+      await addDoc(collection(db, 'users'), {
+        email,
+        age_group: getSelected('age-chips')[0] || '8-10',
+        topics: getSelected('topic-chips'),
+        sources: getSelected('source-chips'),
+        country: document.getElementById('country').value,
+        language: document.getElementById('language').value,
+        frequency: getSelected('freq-chips')[0] || 'daily',
+        last_sent_at: null,
+        created_at: serverTimestamp()
+      });
+
+      document.getElementById('form-container').style.display = 'none';
+      document.getElementById('success-msg').style.display = 'block';
+    } catch (err) {
+      console.error(err);
+      alert('Something went wrong. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Subscribe to The Daily Whiz';
+    }
   };
 </script>
 </body>
