@@ -158,7 +158,7 @@ if __name__ == "__main__":
 
         if "REJECTED_BY_KEYWORD" in result:
             print(f"🚫 Article {i+1}: Blocked by keyword filter.")
-       elif "STATUS: SAFE" in result:
+        elif "STATUS: SAFE" in result:
             print(f"✅ Article {i+1}: Safe & Rewritten.")
             processed_stories.append(result)
             
