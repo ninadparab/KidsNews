@@ -1,10 +1,8 @@
 name: Daily Kids News Digest
-
 on:
   schedule:
-    # 7 AM PST is 2 PM (14:00) UTC. GitHub uses UTC time.
     - cron: '0 14 * * *'
-  workflow_dispatch: # Allows you to run it manually for testing
+  workflow_dispatch:
 
 jobs:
   build:
@@ -20,11 +18,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install google-genai newsapi-python sendgrid chromadb pandas firebase-admin
+          pip install google-genai newsapi-python sendgrid firebase-admin anthropic
 
       - name: 1. Send standard email
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
@@ -34,9 +32,9 @@ jobs:
 
       - name: 2. Send Personalized Emails
         env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: python generate_news.py
