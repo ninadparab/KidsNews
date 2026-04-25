@@ -103,6 +103,18 @@ def process_article_for_kids(article, age_group="8-10 years old"):
     except Exception as e:
         return f"STATUS: ERROR ({str(e)})"
 
+def save_article(kid_title, kid_summary, did_you_know, topics, url, url_to_image):
+    db.collection('articles').add({
+        'kid_title': kid_title,
+        'kid_summary': kid_summary,
+        'did_you_know': did_you_know,
+        'topics': topics,
+        'url': url,
+        'url_to_image': url_to_image,
+        'date': datetime.now().strftime('%Y-%m-%d'),
+        'created_at': firestore.SERVER_TIMESTAMP
+    })
+
 def generate_newsletter(processed_results):
     today = datetime.now().strftime("%B %d, %Y")
     newsletter = f"**************************************************\n" \
@@ -174,7 +186,7 @@ if __name__ == "__main__":
                     did_you_know = line.replace('DID_YOU_KNOW:', '').strip()
             
             save_article(kid_title, kid_summary, did_you_know, 
-                        topics=[], country='us', language='en')
+                        topics=[], country='us', language='en',url=article.get('url', ''), url_to_image=article.get('urlToImage', '') )
         elif "STATUS: ERROR" in result:
             print(f"❌ Article {i+1}: API error — {result}")
         else:
