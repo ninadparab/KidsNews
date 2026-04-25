@@ -1,30 +1,24 @@
 import os
 import time
-import uuid
 from datetime import datetime
 from newsapi import NewsApiClient
 from google import genai
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email, To, Content
+from sendgrid.helpers.mail import Mail
 import firebase_admin
 from firebase_admin import credentials, firestore
 import json
 
-
-# --- 1. SETTING UP CLIENTS USING ENV VARS (Hidden from Public) ---
-# This replaces userdata.get()
+# --- 1. SETTING UP CLIENTS ---
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
-
-# Hiding your email IDs
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL')
-RECIPIENT_EMAILS = os.environ.get('RECIPIENT_EMAILS') 
+RECIPIENT_EMAILS = os.environ.get('RECIPIENT_EMAILS')
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 newsapi = NewsApiClient(api_key=NEWS_API_KEY)
 sg = SendGridAPIClient(api_key=SENDGRID_API_KEY)
-
 
 # --- Firebase setup ---
 def init_firebase():
@@ -35,32 +29,51 @@ def init_firebase():
 
 db = init_firebase()
 
-# --- Save article to Firestore ---
-def save_article(kid_title, kid_summary, did_you_know, topics, country, language):
+# --- Save article to Firestore (single, combined function) ---
+def save_article(kid_title, kid_summary, did_you_know, topics, url, url_to_image):
     db.collection('articles').add({
         'kid_title': kid_title,
         'kid_summary': kid_summary,
         'did_you_know': did_you_know,
-        'topics': topics,
-        'country': country,
-        'language': language,
+        'topics': topics,          # ← now correctly passed
+        'url': url,
+        'url_to_image': url_to_image,
         'date': datetime.now().strftime('%Y-%m-%d'),
         'created_at': firestore.SERVER_TIMESTAMP
     })
     print(f"💾 Saved to Firestore: {kid_title}")
 
-# --- 2. YOUR ORIGINAL FUNCTIONS (Kept as is) ---
-
+# --- Safety keywords ---
 UNSAFE_KEYWORDS = [
     "war", "killed", "attack", "terrorist", "violence",
     "missile", "explosion", "dead", "conflict", "bomb",
     "murder", "shooting", "protest", "arrested", "scandal"
 ]
 
+# --- Topic detection from article text ---
+TOPIC_KEYWORDS = {
+    "Science":     ["science", "research", "study", "discovery", "experiment", "biology", "chemistry", "physics"],
+    "Space":       ["space", "nasa", "planet", "asteroid", "rocket", "moon", "mars", "galaxy", "astronaut", "satellite"],
+    "Animals":     ["animal", "wildlife", "species", "elephant", "whale", "bird", "fish", "dog", "cat", "zoo", "nature"],
+    "Sports":      ["sport", "soccer", "football", "basketball", "tennis", "olympic", "athlete", "championship", "game", "match"],
+    "Technology":  ["technology", "tech", "robot", "ai", "computer", "app", "software", "internet", "digital", "coding"],
+    "Weather":     ["weather", "climate", "storm", "hurricane", "rain", "snow", "temperature", "flood", "drought"],
+    "Arts":        ["art", "music", "painting", "film", "movie", "book", "dance", "theater", "creative", "museum"],
+    "Environment": ["environment", "ocean", "forest", "pollution", "recycle", "renewable", "green", "earth", "ecosystem"]
+}
+
+def detect_topics(title, description):
+    """Detect topics from article text based on keywords."""
+    text = f"{title} {description}".lower()
+    matched = [topic for topic, keywords in TOPIC_KEYWORDS.items()
+               if any(kw in text for kw in keywords)]
+    return matched if matched else ["Science"]  # default to Science if nothing matches
+
 def fetch_raw_news(sources=None, count=25):
     try:
         params = {'language': 'en', 'page_size': count}
-        if sources: params['sources'] = sources
+        if sources:
+            params['sources'] = sources
         top_headlines = newsapi.get_top_headlines(**params)
         return top_headlines['articles']
     except Exception as e:
@@ -94,26 +107,13 @@ def process_article_for_kids(article, age_group="8-10 years old"):
        DID_YOU_KNOW: [1 fun fact]
     """
     try:
-        # Note: Updated model name to a stable version
         response = client.models.generate_content(
-            model="gemini-3.1-flash-lite-preview", 
+            model="gemini-2.5-flash",  # ← fixed model name
             contents=prompt
         )
         return response.text
     except Exception as e:
         return f"STATUS: ERROR ({str(e)})"
-
-def save_article(kid_title, kid_summary, did_you_know, topics, url, url_to_image):
-    db.collection('articles').add({
-        'kid_title': kid_title,
-        'kid_summary': kid_summary,
-        'did_you_know': did_you_know,
-        'topics': topics,
-        'url': url,
-        'url_to_image': url_to_image,
-        'date': datetime.now().strftime('%Y-%m-%d'),
-        'created_at': firestore.SERVER_TIMESTAMP
-    })
 
 def generate_newsletter(processed_results):
     today = datetime.now().strftime("%B %d, %Y")
@@ -121,7 +121,7 @@ def generate_newsletter(processed_results):
                  f"🌟 THE DAILY WHIZ: NEWS FOR BRAVE KIDS 🌟\n" \
                  f"Date: {today}\n" \
                  f"**************************************************\n"
-    
+
     found_safe_news = False
     for result in processed_results:
         if "STATUS: SAFE" in result:
@@ -141,9 +141,7 @@ def generate_newsletter(processed_results):
     return newsletter
 
 def send_newsletter(content, from_email_address, to_email_addresses):
-    # Split the comma-separated secret into a list
     recipient_list = [email.strip() for email in to_email_addresses.split(',')]
-    
     message = Mail(
         from_email=from_email_address,
         to_emails=recipient_list,
@@ -156,8 +154,7 @@ def send_newsletter(content, from_email_address, to_email_addresses):
     except Exception as e:
         print(f"❌ Failed to send email: {e}")
 
-# --- 3. MAIN EXECUTION LOOP (Modified to remove ChromaDB) ---
-
+# --- 3. MAIN EXECUTION LOOP ---
 if __name__ == "__main__":
     today_str = datetime.now().strftime("%Y-%m-%d")
     processed_stories = []
@@ -173,8 +170,8 @@ if __name__ == "__main__":
         elif "STATUS: SAFE" in result:
             print(f"✅ Article {i+1}: Safe & Rewritten.")
             processed_stories.append(result)
-            
-            # Parse and save to Firestore
+
+            # Parse response
             lines = result.split('\n')
             kid_title = kid_summary = did_you_know = ''
             for line in lines:
@@ -184,15 +181,29 @@ if __name__ == "__main__":
                     kid_summary = line.replace('KID_SUMMARY:', '').strip()
                 if "DID_YOU_KNOW:" in line:
                     did_you_know = line.replace('DID_YOU_KNOW:', '').strip()
-            
-            save_article(kid_title, kid_summary, did_you_know, 
-                        topics=[], country='us', language='en',url=article.get('url', ''), url_to_image=article.get('urlToImage', '') )
+
+            # Detect topics from original article ← key fix
+            topics = detect_topics(
+                art.get('title', ''),
+                art.get('description', '') or ''
+            )
+            print(f"   🏷️ Topics: {topics}")
+
+            # Save to Firestore with all fields ← fixed variable name art not article
+            save_article(
+                kid_title=kid_title,
+                kid_summary=kid_summary,
+                did_you_know=did_you_know,
+                topics=topics,
+                url=art.get('url', ''),
+                url_to_image=art.get('urlToImage', '')
+            )
+
         elif "STATUS: ERROR" in result:
             print(f"❌ Article {i+1}: API error — {result}")
         else:
             print(f"⚠️ Article {i+1}: Flagged as unsafe by AI.")
 
-        # Keep your sleep timer to stay within Free Tier limits
         time.sleep(10)
 
     final_edition = generate_newsletter(processed_stories)
