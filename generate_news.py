@@ -1,12 +1,11 @@
 import os
 import time
-import uuid
 import json
 from datetime import datetime
 from newsapi import NewsApiClient
 from google import genai
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email, To, Content
+from sendgrid.helpers.mail import Mail
 import firebase_admin
 from firebase_admin import credentials, firestore
 
@@ -15,7 +14,6 @@ GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL')
-APP_ID = "kids-news-explorer" 
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 newsapi = NewsApiClient(api_key=NEWS_API_KEY)
@@ -35,21 +33,19 @@ def init_firebase():
 db = init_firebase()
 
 # --- 2. SAFETY & LOGIC FUNCTIONS ---
-
 UNSAFE_KEYWORDS = [
     "war", "killed", "attack", "terrorist", "violence",
     "missile", "explosion", "dead", "conflict", "bomb",
     "murder", "shooting", "protest", "arrested", "scandal"
 ]
 
-def fetch_personalized_news(topics):
-    """Fetches news based on user's selected topics."""
+def fetch_personalized_news(topics, country='us'):
     query = " OR ".join(topics) if topics else "science OR space OR nature"
     try:
         results = newsapi.get_everything(
-            q=query, 
-            language='en', 
-            sort_by='relevancy', 
+            q=query,
+            language='en',
+            sort_by='relevancy',
             page_size=10
         )
         return results.get('articles', [])
@@ -62,7 +58,6 @@ def is_safe_basic(title, description):
     return not any(word in full_text for word in UNSAFE_KEYWORDS)
 
 def process_article_for_kids(article, age_group):
-    """Uses AI to rewrite news for the specific age group."""
     title = article.get('title', '')
     description = article.get('description', '') or ""
 
@@ -77,17 +72,27 @@ def process_article_for_kids(article, age_group):
         "DID_YOU_KNOW: [1 fun fact]\n\n"
         "If UNSAFE, respond ONLY with 'STATUS: UNSAFE'."
     )
+
     try:
         response = client.models.generate_content(
-            model="gemini-3.1-flash-lite-preview",
+            model="gemini-2.5-flash",  # ← fixed model name
             contents=prompt
         )
         return response.text
     except Exception as e:
         return f"STATUS: ERROR ({str(e)})"
 
+def should_send_today(user_data):
+    frequency = user_data.get('frequency', 'daily')
+    if frequency == 'daily':
+        return True
+    elif frequency == 'weekly':
+        return datetime.now().weekday() == 0  # Mondays
+    elif frequency == 'monthly':
+        return datetime.now().day == 1
+    return True
+
 def send_personalized_email(email, content):
-    """Sends the custom newsletter via SendGrid."""
     message = Mail(
         from_email=SENDER_EMAIL,
         to_emails=email,
@@ -101,52 +106,56 @@ def send_personalized_email(email, content):
         print(f"❌ Failed to send to {email}: {e}")
 
 # --- 3. MAIN PERSONALIZATION LOOP ---
-
 if __name__ == "__main__":
     print(f"--- Starting Personalized Run: {datetime.now()} ---")
-    
-    # Iterate through all users who signed up on your HTML page
-    # Path: /artifacts/kids-news-explorer/users
-    users_ref = db.collection('artifacts', APP_ID, 'users')
-    users = users_ref.stream()
 
-    for user_doc in users:
-        # Get preferences from: /artifacts/kids-news-explorer/users/{id}/settings/preferences
-        prefs_ref = db.document(f'artifacts/{APP_ID}/users/{user_doc.id}/settings/preferences')
-        prefs = prefs_ref.get().to_dict() or {}
-        
-        email = prefs.get('email')
+    # ← fixed: reads from 'users' collection directly
+    users = db.collection('users').stream()
+    user_list = list(users)
+    print(f"Found {len(user_list)} users")
+
+    for user_doc in user_list:
+        user_data = user_doc.to_dict()
+
+        email = user_data.get('email')
         if not email:
             print(f"Skipping {user_doc.id}: No email found.")
             continue
 
-        topics = prefs.get('topics', [])
-        age_group = prefs.get('ageGroup', "8-10")
-        
-        print(f"Processing for {email} (Topics: {topics})...")
-        
-        raw_articles = fetch_personalized_news(topics)
+        if not should_send_today(user_data):
+            print(f"⏭️ Skipping {email}: not their send day.")
+            continue
+
+        topics = user_data.get('topics', [])
+        age_group = user_data.get('age_group', '8-10')  # ← fixed field name
+        country = user_data.get('country', 'us')
+
+        print(f"Processing for {email} | Age: {age_group} | Topics: {topics}")
+
+        raw_articles = fetch_personalized_news(topics, country)
         user_stories = []
 
-        for i, art in enumerate(raw_articles[:3]):
+        for i, art in enumerate(raw_articles[:5]):
             result = process_article_for_kids(art, age_group=age_group)
-            
-            if "STATUS: SAFE" in result.upper():
-                # Clean the result for the email content
-                clean_story = result.replace("STATUS: SAFE", "").strip()
-                user_stories.append(clean_story)
-            
-            # Rate limiting delay
-            time.sleep(2)
+
+            if "STATUS: SAFE" in result:
+                user_stories.append(result.replace("STATUS: SAFE", "").strip())
+                print(f"  ✅ Article {i+1}: Safe")
+            elif "REJECTED_BY_KEYWORD" in result:
+                print(f"  🚫 Article {i+1}: Blocked by keyword")
+            elif "STATUS: ERROR" in result:
+                print(f"  ❌ Article {i+1}: API error — {result}")
+            else:
+                print(f"  ⚠️ Article {i+1}: Unsafe")
+
+            time.sleep(3)
 
         if user_stories:
             email_body = f"Hello Explorer! Here is your daily news tuned for age {age_group}:\n\n"
-            email_body += "\n\n" + ("="*30) + "\n\n"
-            email_body += "\n\n---\n\n".join(user_stories)
+            email_body += ("\n\n" + "="*30 + "\n\n").join(user_stories)
             email_body += f"\n\nUpdate your interests at: https://kidsnews-f9c81.web.app/"
-            
             send_personalized_email(email, email_body)
         else:
-            print(f"No safe stories for {email} today.")
+            print(f"No safe stories found for {email} today.")
 
     print("--- Run Complete ---")
