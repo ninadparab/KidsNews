@@ -31,17 +31,20 @@ db = init_firebase()
 
 # --- Save article to Firestore (single, combined function) ---
 def save_article(kid_title, kid_summary, did_you_know, topics, url, url_to_image):
-    db.collection('articles').add({
-        'kid_title': kid_title,
-        'kid_summary': kid_summary,
-        'did_you_know': did_you_know,
-        'topics': topics,          # ← now correctly passed
-        'url': url,
-        'url_to_image': url_to_image,
-        'date': datetime.now().strftime('%Y-%m-%d'),
-        'created_at': firestore.SERVER_TIMESTAMP
-    })
-    print(f"💾 Saved to Firestore: {kid_title}")
+    try:
+        db.collection('articles').add({
+            'kid_title': kid_title,
+            'kid_summary': kid_summary,
+            'did_you_know': did_you_know,
+            'topics': topics,
+            'url': url,
+            'url_to_image': url_to_image,
+            'date': datetime.now().strftime('%Y-%m-%d'),
+            'created_at': firestore.SERVER_TIMESTAMP
+        })
+        print(f"💾 Saved to Firestore: {kid_title}")
+    except Exception as e:
+        print(f"❌ Firestore save failed: {e}")  # ← this will show the real error
 
 # --- Safety keywords ---
 UNSAFE_KEYWORDS = [
