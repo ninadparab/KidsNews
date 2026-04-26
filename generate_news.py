@@ -75,7 +75,7 @@ def process_article_for_kids(article, age_group):
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",  # ← fixed model name
+            model="gemini-2.0-flash",  # ← fixed model name
             contents=prompt
         )
         return response.text
