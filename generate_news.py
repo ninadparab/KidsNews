@@ -148,7 +148,7 @@ if __name__ == "__main__":
             else:
                 print(f"  ⚠️ Article {i+1}: Unsafe")
 
-            time.sleep(3)
+            time.sleep(20)
 
         if user_stories:
             email_body = f"Hello Explorer! Here is your daily news tuned for age {age_group}:\n\n"
