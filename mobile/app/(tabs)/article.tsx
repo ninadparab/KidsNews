@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Speech from 'expo-speech';
 
 const TOPIC_COLORS: Record<string, string> = {
   Science: '#4ECDC4', Space: '#9B5DE5', Animals: '#00B4D8',
@@ -14,6 +16,27 @@ export default function ArticleScreen() {
   }>();
   const router = useRouter();
   const color = TOPIC_COLORS[topic] || '#888';
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  function handleSpeak() {
+    if (isSpeaking) {
+      Speech.stop();
+      setIsSpeaking(false);
+      return;
+    }
+
+    const textToRead = `${title}. ${summary}. ${funFact ? `Did you know? ${funFact}` : ''}`;
+
+    Speech.speak(textToRead, {
+      language: 'en',
+      pitch: 1.1,    // slightly higher pitch — friendlier for kids
+      rate: 0.85,    // slightly slower — easier for kids to follow
+      onDone: () => setIsSpeaking(false),
+      onStopped: () => setIsSpeaking(false),
+      onError: () => setIsSpeaking(false),
+    });
+    setIsSpeaking(true);
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -34,6 +57,16 @@ export default function ArticleScreen() {
         </View>
 
         <Text style={styles.title}>{title}</Text>
+
+        {/* Voice button */}
+        <TouchableOpacity
+          style={[styles.voiceBtn, isSpeaking && styles.voiceBtnActive]}
+          onPress={handleSpeak}>
+          <Text style={styles.voiceBtnText}>
+            {isSpeaking ? '⏹️ Stop Reading' : '🔊 Read Aloud'}
+          </Text>
+        </TouchableOpacity>
+
         <Text style={styles.summary}>{summary}</Text>
 
         {funFact ? (
@@ -49,7 +82,10 @@ export default function ArticleScreen() {
           </TouchableOpacity>
         ) : null}
 
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => {
+          Speech.stop();
+          router.back();
+        }}>
           <Text style={styles.backBtnText}>← Back to news</Text>
         </TouchableOpacity>
       </View>
@@ -67,6 +103,9 @@ const styles = StyleSheet.create({
   topicTagText: { color: 'white', fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
   date: { fontSize: 13, color: '#888' },
   title: { fontSize: 24, fontWeight: '800', color: '#1A1208', lineHeight: 32, marginBottom: 16 },
+  voiceBtn: { backgroundColor: '#1A1208', padding: 14, borderRadius: 12, alignItems: 'center', marginBottom: 20, flexDirection: 'row', justifyContent: 'center' },
+  voiceBtnActive: { backgroundColor: '#FF6B35' },
+  voiceBtnText: { color: 'white', fontSize: 16, fontWeight: '700' },
   summary: { fontSize: 16, color: '#444', lineHeight: 26, marginBottom: 20 },
   funFact: { backgroundColor: '#FFFBF0', borderWidth: 1, borderColor: '#FFE66D', borderRadius: 12, padding: 16, marginBottom: 24 },
   funFactLabel: { fontSize: 14, fontWeight: '700', color: '#5A4000', marginBottom: 6 },

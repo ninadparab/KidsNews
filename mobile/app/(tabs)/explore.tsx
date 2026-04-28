@@ -9,13 +9,13 @@ export default function SubscribeScreen() {
 
       <TouchableOpacity
         style={styles.btn}
-        onPress={() => Linking.openURL('https://kidsnews-f9c81.web.app/index.html')}>
+        onPress={() => Linking.openURL('https://safekidsnews.com/index.html')}>
         <Text style={styles.btnText}>Subscribe Now →</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.btnSecondary}
-        onPress={() => Linking.openURL('https://kidsnews-f9c81.web.app/app.html')}>
+        onPress={() => Linking.openURL('https://safekidsnews.com/app.html')}>
         <Text style={styles.btnSecondaryText}>Browse on Web →</Text>
       </TouchableOpacity>
     </View>
