@@ -28,7 +28,7 @@ jobs:
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
           RECIPIENT_EMAILS: ${{ secrets.RECIPIENT_EMAILS }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: python main.py
+        run: python newsletter/main.py
         
 
       - name: 2. Send Personalized Emails
