@@ -1,134 +1,318 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The Daily Whiz — Sign Up</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #111; }
-    .container { max-width: 560px; margin: 0 auto; padding: 2rem 1rem; }
-    .header { text-align: center; margin-bottom: 2rem; }
-    .header h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
-    .header p { font-size: 14px; color: #666; }
-    .card { background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; }
-    .section-label { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
-    .field { margin-bottom: 1rem; }
-    .field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
-    .field input, .field select { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
-    .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip { padding: 6px 14px; border: 1px solid #ddd; border-radius: 99px; font-size: 13px; cursor: pointer; background: white; color: #555; transition: all 0.15s; user-select: none; }
-    .chip.selected { background: #EEEDFE; border-color: #7F77DD; color: #3C3489; }
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .submit-btn { width: 100%; padding: 12px; background: #534AB7; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 0.5rem; }
-    .submit-btn:hover { background: #3C3489; }
-    .submit-btn:disabled { background: #aaa; cursor: not-allowed; }
-    .hint { font-size: 12px; color: #aaa; margin-top: 4px; }
-    .success { text-align: center; padding: 3rem 1rem; display: none; }
-    .success h2 { font-size: 20px; margin-bottom: 8px; }
-    .success p { color: #666; font-size: 14px; }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The Daily Whiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #FFF9F0;
+  --card: #FFFFFF;
+  --text: #1A1208;
+  --muted: #8A7A65;
+  --border: #EDE5D8;
+  --accent: #FF6B35;
+  --accent2: #4ECDC4;
+  --accent3: #FFE66D;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* Header */
+.header {
+  background: var(--text);
+  color: white;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo span { color: var(--accent3); }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.date-badge { font-size: 12px; color: #aaa; font-weight: 500; }
+.subscribe-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  text-decoration: none;
+}
+
+/* Hero */
+.hero {
+  background: linear-gradient(135deg, #1A1208 0%, #2D1F0E 100%);
+  color: white;
+  padding: 3rem 2rem 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50px; right: -50px;
+  width: 200px; height: 200px;
+  background: var(--accent3);
+  border-radius: 50%;
+  opacity: 0.08;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -30px; left: -30px;
+  width: 150px; height: 150px;
+  background: var(--accent);
+  border-radius: 50%;
+  opacity: 0.1;
+}
+.hero h1 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+.hero h1 em { color: var(--accent3); font-style: italic; }
+.hero p { color: #aaa; font-size: 15px; margin-bottom: 1.5rem; }
+.stats { display: flex; justify-content: center; gap: 2rem; }
+.stat { text-align: center; }
+.stat-num { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 900; color: var(--accent3); }
+.stat-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* Filters */
+.filters-wrap {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  position: sticky;
+  top: 64px;
+  z-index: 90;
+}
+.filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 0;
+  scrollbar-width: none;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.filters::-webkit-scrollbar { display: none; }
+.filter-chip {
+  padding: 6px 16px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  border: 1.5px solid var(--border);
+  background: white;
+  color: var(--muted);
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.filter-chip:hover { border-color: var(--text); color: var(--text); }
+.filter-chip.active { background: var(--text); color: white; border-color: var(--text); }
+
+/* Main content */
+.main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+.section-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; }
+.article-count { font-size: 13px; color: var(--muted); }
+
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Card */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+}
+.card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
+.card-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  background: var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+}
+.card-img img { width: 100%; height: 100%; object-fit: cover; }
+.card-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
+.card-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.topic-tag {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 99px;
+  color: white;
+}
+.card-date { font-size: 12px; color: var(--muted); }
+.card-title { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; line-height: 1.3; margin-bottom: 10px; }
+.card-summary { font-size: 14px; line-height: 1.6; color: #555; margin-bottom: 12px; flex: 1; }
+.fun-fact {
+  background: #FFFBF0;
+  border: 1px solid #FFE66D;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #7A5C00;
+  margin-bottom: 12px;
+}
+.fun-fact strong { color: #5A4000; }
+.card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border); }
+.read-more { font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none; }
+.read-more:hover { text-decoration: underline; }
+.age-badge { font-size: 11px; color: var(--muted); background: var(--bg); padding: 3px 8px; border-radius: 99px; }
+
+/* Loading / Empty */
+.loading { text-align: center; padding: 4rem; color: var(--muted); }
+.loading-spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty { text-align: center; padding: 4rem; grid-column: 1/-1; }
+.empty-emoji { font-size: 48px; margin-bottom: 1rem; }
+.empty h3 { font-family: 'Fraunces', serif; font-size: 20px; margin-bottom: 8px; }
+.empty p { color: var(--muted); font-size: 14px; }
+
+/* Modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
+.modal-overlay.open { display: flex; }
+.modal { background: white; border-radius: 20px; max-width: 560px; width: 100%; max-height: 80vh; overflow-y: auto; }
+.modal-img { width: 100%; height: 220px; object-fit: cover; border-radius: 20px 20px 0 0; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 64px; }
+.modal-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 20px 20px 0 0; }
+.modal-body { padding: 1.5rem; }
+.modal-title { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 800; margin-bottom: 12px; line-height: 1.2; }
+.modal-summary { font-size: 15px; line-height: 1.7; color: #444; margin-bottom: 1rem; }
+.modal-fact { background: #FFFBF0; border: 1px solid #FFE66D; border-radius: 10px; padding: 14px; font-size: 14px; color: #7A5C00; margin-bottom: 1.5rem; }
+.modal-actions { display: flex; gap: 10px; }
+.btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 99px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: 'DM Sans', sans-serif; }
+.btn-close { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 10px 20px; border-radius: 99px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 600px) {
+  .hero { padding: 2rem 1rem 1.5rem; }
+  .main { padding: 1.5rem 1rem; }
+  .grid { grid-template-columns: 1fr; }
+  .stats { gap: 1rem; }
+}
+</style>
 </head>
 <body>
 
-<div class="container" id="form-container">
-  <div class="header">
-    <div style="font-size: 28px; margin-bottom: 8px;">🌟</div>
-    <h1>The Daily Whiz</h1>
-    <p>Personalized news for curious kids</p>
+<header class="header">
+  <div class="logo">🌟 The Daily <span>Whiz</span></div>
+  <div class="header-right">
+    <span class="date-badge" id="today-date"></span>
+    <a href="/signup.html" class="subscribe-btn">Subscribe</a>
   </div>
+</header>
 
-  <div class="card">
-    <div class="section-label">Your details</div>
-    <div class="field">
-      <label>Email address</label>
-      <input type="email" id="email" placeholder="parent@email.com" />
+<div class="hero">
+  <h1>News made for <em>curious kids</em></h1>
+  <p>Safe, fun, and easy to read — fresh every day</p>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num" id="stat-articles">—</div>
+      <div class="stat-label">Articles this week</div>
     </div>
-    <div class="field">
-      <label>Child's age group</label>
-      <div class="chip-group" id="age-chips">
-        <div class="chip" data-value="6-8">6–8 years</div>
-        <div class="chip selected" data-value="8-10">8–10 years</div>
-        <div class="chip" data-value="10-12">10–12 years</div>
-      </div>
+    <div class="stat">
+      <div class="stat-num">8</div>
+      <div class="stat-label">Topics covered</div>
     </div>
-  </div>
-
-  <div class="card">
-    <div class="section-label">Topics of interest</div>
-    <div class="chip-group" id="topic-chips">
-      <div class="chip" data-value="Science">Science</div>
-      <div class="chip" data-value="Weather">Weather</div>
-      <div class="chip" data-value="Space">Space</div>
-      <div class="chip" data-value="Animals">Animals</div>
-      <div class="chip" data-value="Sports">Sports</div>
-      <div class="chip" data-value="Technology">Technology</div>
-      <div class="chip" data-value="Arts">Arts</div>
-      <div class="chip" data-value="Environment">Environment</div>
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Kid safe</div>
     </div>
   </div>
-
-  <div class="card">
-    <div class="section-label">News preferences</div>
-    <div class="two-col">
-      <div class="field">
-        <label>Country</label>
-        <select id="country">
-          <option value="us">United States</option>
-          <option value="gb">United Kingdom</option>
-          <option value="ca">Canada</option>
-          <option value="au">Australia</option>
-          <option value="in">India</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Language</label>
-        <select id="language">
-          <option value="en">English</option>
-          <option value="es">Spanish</option>
-          <option value="fr">French</option>
-        </select>
-      </div>
-    </div>
-    <div class="field">
-      <label>Preferred sources <span style="font-weight:400;color:#aaa">(optional)</span></label>
-      <div class="chip-group" id="source-chips">
-        <div class="chip" data-value="bbc-news">BBC News</div>
-        <div class="chip" data-value="national-geographic">Nat Geographic</div>
-        <div class="chip" data-value="reuters">Reuters</div>
-        <div class="chip" data-value="associated-press">AP News</div>
-      </div>
-      <p class="hint">Leave blank to pull from all sources</p>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="section-label">Delivery</div>
-    <div class="chip-group" id="freq-chips">
-      <div class="chip selected" data-value="daily">Daily</div>
-      <div class="chip" data-value="weekly">Weekly</div>
-      <div class="chip" data-value="monthly">Monthly</div>
-    </div>
-  </div>
-
-  <button class="submit-btn" id="submit-btn" onclick="handleSubmit()">
-    Subscribe to The Daily Whiz
-  </button>
-  <p style="text-align:center;font-size:12px;color:#aaa;margin-top:12px">
-    No spam, ever. Unsubscribe anytime.
-  </p>
 </div>
 
-<div class="success" id="success-msg">
-  <div style="font-size:40px;margin-bottom:12px">🎉</div>
-  <h2>You're subscribed!</h2>
-  <p>Check your inbox soon for your first edition of The Daily Whiz.</p>
+<div class="filters-wrap">
+  <div class="filters">
+    <div class="filter-chip active" data-topic="all">✨ All Topics</div>
+    <div class="filter-chip" data-topic="Science">🔬 Science</div>
+    <div class="filter-chip" data-topic="Space">🚀 Space</div>
+    <div class="filter-chip" data-topic="Animals">🦁 Animals</div>
+    <div class="filter-chip" data-topic="Sports">⚽ Sports</div>
+    <div class="filter-chip" data-topic="Technology">💻 Technology</div>
+    <div class="filter-chip" data-topic="Weather">🌤️ Weather</div>
+    <div class="filter-chip" data-topic="Arts">🎨 Arts</div>
+    <div class="filter-chip" data-topic="Environment">🌿 Environment</div>
+  </div>
+</div>
+
+<main class="main">
+  <div class="section-header">
+    <div class="section-title">Latest Stories</div>
+    <div class="article-count" id="article-count"></div>
+  </div>
+  <div id="articles-grid" class="grid">
+    <div class="loading">
+      <div class="loading-spinner"></div>
+      <p>Loading today's stories...</p>
+    </div>
+  </div>
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-img" id="modal-img"></div>
+    <div class="modal-body">
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-summary" id="modal-summary"></div>
+      <div class="modal-fact" id="modal-fact"></div>
+      <div class="modal-actions">
+        <a href="#" id="modal-link" class="btn-primary" target="_blank">Read original article →</a>
+        <button class="btn-close" onclick="document.getElementById('modal').classList.remove('open')">Close</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+  // ← Replace these with your real Firebase config values
   const firebaseConfig = {
 
   apiKey: "AIzaSyB0nDZnYfTI5j15O9R73M123YxypRmKcrI",
@@ -138,64 +322,137 @@
   messagingSenderId: "35324641174",
   appId: "1:35324641174:web:710e147be9c55f4b5de7b7",
   measurementId: "G-CK5N5G0GYQ"
-};
-
+  };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  document.querySelectorAll('.chip-group').forEach(group => {
-    const isMulti = ['topic-chips', 'source-chips'].includes(group.id);
-    group.querySelectorAll('.chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        if (isMulti) {
-          chip.classList.toggle('selected');
-        } else {
-          group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
-          chip.classList.add('selected');
-        }
-      });
-    });
+  const topicColors = {
+    Science: '#4ECDC4', Space: '#9B5DE5', Animals: '#00B4D8',
+    Sports: '#FF6B35', Technology: '#06D6A0', Weather: '#118AB2',
+    Arts: '#EF476F', Environment: '#57CC99'
+  };
+  const topicEmojis = {
+    Science: '🔬', Space: '🚀', Animals: '🦁', Sports: '⚽',
+    Technology: '💻', Weather: '🌤️', Arts: '🎨', Environment: '🌿'
+  };
+
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric'
   });
 
-  function getSelected(groupId) {
-    return [...document.querySelectorAll(`#${groupId} .chip.selected`)]
-      .map(c => c.dataset.value);
+  let allArticles = [];
+  let activeFilter = 'all';
+
+  async function fetchArticles() {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const cutoff = sevenDaysAgo.toISOString().split('T')[0];
+
+    try {
+      const q = query(
+        collection(db, 'articles'),
+        where('date', '>=', cutoff),
+        orderBy('date', 'desc'),
+        limit(50)
+      );
+      const snap = await getDocs(q);
+      allArticles = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      document.getElementById('stat-articles').textContent = allArticles.length;
+      renderArticles();
+    } catch (err) {
+      console.error('Firestore error:', err);
+      document.getElementById('articles-grid').innerHTML = `
+        <div class="empty">
+          <div class="empty-emoji">⚠️</div>
+          <h3>Could not load articles</h3>
+          <p>Please check your Firebase config values and Firestore rules.</p>
+        </div>`;
+    }
   }
 
-  window.handleSubmit = async () => {
-    const email = document.getElementById('email').value.trim();
-    if (!email || !email.includes('@')) {
-      alert('Please enter a valid email address.');
+  function renderArticles() {
+    const grid = document.getElementById('articles-grid');
+    const filtered = activeFilter === 'all'
+      ? allArticles
+      : allArticles.filter(a => a.topics && a.topics.includes(activeFilter));
+
+    document.getElementById('article-count').textContent = `${filtered.length} stories`;
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `<div class="empty">
+        <div class="empty-emoji">🔍</div>
+        <h3>No stories found</h3>
+        <p>Try a different topic filter</p>
+      </div>`;
       return;
     }
 
-    const btn = document.getElementById('submit-btn');
-    btn.disabled = true;
-    btn.textContent = 'Subscribing...';
+    grid.innerHTML = filtered.map((article, i) => {
+      const topic = article.topics?.[0] || 'Science';
+      const color = topicColors[topic] || '#888';
+      const emoji = topicEmojis[topic] || '📰';
+      const date = new Date(article.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const imgHtml = article.url_to_image
+        ? `<div class="card-img"><img src="${article.url_to_image}" alt="" onerror="this.parentElement.innerHTML='${emoji}'" loading="lazy"/></div>`
+        : `<div class="card-img">${emoji}</div>`;
 
-    try {
-      await addDoc(collection(db, 'users'), {
-        email,
-        age_group: getSelected('age-chips')[0] || '8-10',
-        topics: getSelected('topic-chips'),
-        sources: getSelected('source-chips'),
-        country: document.getElementById('country').value,
-        language: document.getElementById('language').value,
-        frequency: getSelected('freq-chips')[0] || 'daily',
-        last_sent_at: null,
-        created_at: serverTimestamp()
-      });
+      return `<div class="card" onclick="openModal(${i}, '${activeFilter}')" style="animation: fadeUp 0.4s ease ${i * 0.05}s both">
+        ${imgHtml}
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="topic-tag" style="background:${color}">${topic}</span>
+            <span class="card-date">${date}</span>
+          </div>
+          <div class="card-title">${article.kid_title || 'Untitled'}</div>
+          <div class="card-summary">${(article.kid_summary || '').substring(0, 120)}...</div>
+          ${article.did_you_know ? `<div class="fun-fact"><strong>💡 Did you know?</strong> ${article.did_you_know}</div>` : ''}
+          <div class="card-footer">
+            ${article.url ? `<a class="read-more" href="${article.url}" target="_blank" onclick="event.stopPropagation()">Read original →</a>` : '<span></span>'}
+            <span class="age-badge">Ages ${article.age_group || '8-10'}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
 
-      document.getElementById('form-container').style.display = 'none';
-      document.getElementById('success-msg').style.display = 'block';
-    } catch (err) {
-      console.error(err);
-      alert('Something went wrong. Please try again.');
-      btn.disabled = false;
-      btn.textContent = 'Subscribe to The Daily Whiz';
+  // Filter chips
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeFilter = chip.dataset.topic;
+      renderArticles();
+    });
+  });
+
+  // Modal
+  window.openModal = (index, filter) => {
+    const filtered = filter === 'all' ? allArticles : allArticles.filter(a => a.topics && a.topics.includes(filter));
+    const article = filtered[index];
+    if (!article) return;
+
+    const emoji = topicEmojis[article.topics?.[0]] || '📰';
+    document.getElementById('modal-img').innerHTML = article.url_to_image
+      ? `<img src="${article.url_to_image}" alt="" onerror="this.parentElement.innerHTML='${emoji}'"/>`
+      : emoji;
+    document.getElementById('modal-title').textContent = article.kid_title || '';
+    document.getElementById('modal-summary').textContent = article.kid_summary || '';
+    document.getElementById('modal-fact').innerHTML = article.did_you_know
+      ? `<strong>💡 Did you know?</strong> ${article.did_you_know}` : '';
+    const link = document.getElementById('modal-link');
+    if (article.url) { link.href = article.url; link.style.display = 'inline-flex'; }
+    else { link.style.display = 'none'; }
+    document.getElementById('modal').classList.add('open');
+  };
+
+  window.closeModal = (e) => {
+    if (e.target === document.getElementById('modal')) {
+      document.getElementById('modal').classList.remove('open');
     }
   };
+
+  fetchArticles();
 </script>
 </body>
 </html>
