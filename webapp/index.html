@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>The Daily Whiz</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<title>The Daily Whiz — Safe News for Kids</title>
+<meta name="description" content="AI-filtered, safe news for curious kids aged 6–12. Updated daily. Trusted by parents."/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root {
   --bg: #FFF9F0;
@@ -15,53 +16,101 @@
   --accent: #FF6B35;
   --accent2: #4ECDC4;
   --accent3: #FFE66D;
+  --header-h: 88px;
+  --topbar-h: 4px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-/* Header */
+/* ── Header ── */
 .header {
-  background: var(--text);
-  color: white;
-  padding: 0 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 64px;
   position: sticky;
   top: 0;
   z-index: 100;
+  background: var(--text);
+  color: white;
 }
+.header-bar {
+  height: var(--topbar-h);
+  background: linear-gradient(90deg, #FF6B35 0%, #FFE66D 50%, #4ECDC4 100%);
+}
+.header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  height: calc(var(--header-h) - var(--topbar-h));
+  gap: 1rem;
+}
+
+/* ── Logo ── */
+.logo-wrap { display: flex; flex-direction: column; }
 .logo {
   font-family: 'Fraunces', serif;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 900;
   letter-spacing: -0.5px;
   display: flex;
   align-items: center;
   gap: 8px;
+  line-height: 1;
 }
 .logo span { color: var(--accent3); }
+.logo-tagline {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  font-weight: 400;
+  margin-top: 3px;
+  letter-spacing: 0.02em;
+}
+
+/* ── Center trust badge ── */
+.header-trust {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── Header right ── */
 .header-right { display: flex; align-items: center; gap: 12px; }
-.date-badge { font-size: 12px; color: #aaa; font-weight: 500; }
+.date-badge {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  font-weight: 500;
+  white-space: nowrap;
+}
 .subscribe-btn {
   background: var(--accent);
   color: white;
   border: none;
-  padding: 8px 16px;
+  padding: 10px 22px;
   border-radius: 99px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   font-family: 'DM Sans', sans-serif;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 16px rgba(255,107,53,0.45);
+  transition: transform 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
 }
+.subscribe-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(255,107,53,0.55); }
 
-/* Hero */
+/* ── Hero ── */
 .hero {
   background: linear-gradient(135deg, #1A1208 0%, #2D1F0E 100%);
   color: white;
-  padding: 3rem 2rem 2rem;
+  padding: 3.5rem 2rem 2.75rem;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -69,43 +118,82 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .hero::before {
   content: '';
   position: absolute;
-  top: -50px; right: -50px;
-  width: 200px; height: 200px;
+  top: -60px; right: -60px;
+  width: 240px; height: 240px;
   background: var(--accent3);
   border-radius: 50%;
-  opacity: 0.08;
+  opacity: 0.07;
+  pointer-events: none;
 }
 .hero::after {
   content: '';
   position: absolute;
-  bottom: -30px; left: -30px;
-  width: 150px; height: 150px;
+  bottom: -40px; left: -40px;
+  width: 180px; height: 180px;
   background: var(--accent);
   border-radius: 50%;
-  opacity: 0.1;
+  opacity: 0.09;
+  pointer-events: none;
+}
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,230,109,0.15);
+  border: 1px solid rgba(255,230,109,0.35);
+  color: var(--accent3);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 5px 14px;
+  border-radius: 99px;
+  margin-bottom: 1rem;
 }
 .hero h1 {
   font-family: 'Fraunces', serif;
-  font-size: clamp(28px, 5vw, 48px);
+  font-size: clamp(28px, 5vw, 50px);
   font-weight: 900;
   line-height: 1.1;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .hero h1 em { color: var(--accent3); font-style: italic; }
-.hero p { color: #aaa; font-size: 15px; margin-bottom: 1.5rem; }
-.stats { display: flex; justify-content: center; gap: 2rem; }
-.stat { text-align: center; }
-.stat-num { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 900; color: var(--accent3); }
-.stat-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+.hero-sub {
+  color: rgba(255,255,255,0.6);
+  font-size: 16px;
+  max-width: 480px;
+  margin: 0 auto 2rem;
+  line-height: 1.65;
+}
+.trust-signals {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.trust-pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.18);
+  padding: 9px 18px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+}
+.trust-pill .pill-icon { font-size: 15px; }
 
-/* Filters */
+/* ── Filters ── */
 .filters-wrap {
   background: white;
   border-bottom: 1px solid var(--border);
   padding: 0 2rem;
   position: sticky;
-  top: 64px;
+  top: var(--header-h);
   z-index: 90;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 .filters {
   display: flex;
@@ -118,10 +206,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 }
 .filters::-webkit-scrollbar { display: none; }
 .filter-chip {
-  padding: 6px 16px;
+  padding: 7px 14px;
   border-radius: 99px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   border: 1.5px solid var(--border);
@@ -129,142 +217,410 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   color: var(--muted);
   transition: all 0.2s;
   font-family: 'DM Sans', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  user-select: none;
 }
-.filter-chip:hover { border-color: var(--text); color: var(--text); }
+.filter-chip:hover { border-color: var(--text); color: var(--text); background: #FAF5EE; }
 .filter-chip.active { background: var(--text); color: white; border-color: var(--text); }
+.filter-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.12);
+  border-radius: 99px;
+  padding: 1px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 20px;
+  line-height: 1.6;
+}
+.filter-chip.active .filter-count { background: rgba(255,255,255,0.25); }
 
-/* Main content */
+/* ── Main ── */
 .main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
 .section-header {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 8px;
 }
+.section-left { display: flex; align-items: baseline; gap: 10px; }
 .section-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; }
 .article-count { font-size: 13px; color: var(--muted); }
+.section-note { font-size: 12px; color: var(--muted); }
 
-/* Grid */
+/* ── Grid ── */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
+  transition: opacity 0.15s;
 }
 
-/* Card */
+/* ── Card ── */
 .card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   cursor: pointer;
   display: flex;
   flex-direction: column;
 }
-.card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.11);
+  border-color: rgba(255,107,53,0.25);
+}
 .card-img {
   width: 100%;
-  height: 180px;
-  object-fit: cover;
+  height: 190px;
   background: var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 48px;
+  font-size: 52px;
+  overflow: hidden;
+  flex-shrink: 0;
 }
-.card-img img { width: 100%; height: 100%; object-fit: cover; }
+.card-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .card-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
-.card-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 8px;
+}
 .topic-tag {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 3px 10px;
+  letter-spacing: 0.07em;
+  padding: 4px 11px;
   border-radius: 99px;
   color: white;
+  flex-shrink: 0;
 }
-.card-date { font-size: 12px; color: var(--muted); }
-.card-title { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; line-height: 1.3; margin-bottom: 10px; }
-.card-summary { font-size: 14px; line-height: 1.6; color: #555; margin-bottom: 12px; flex: 1; }
+.card-meta-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.card-date { font-size: 11px; color: var(--muted); font-weight: 500; }
+.read-time { font-size: 11px; color: var(--muted); font-weight: 500; white-space: nowrap; }
+.read-time::before { content: '·'; margin-right: 5px; color: var(--border); }
+.card-title {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.card-summary { font-size: 14px; line-height: 1.65; color: #5a5040; margin-bottom: 12px; flex: 1; }
 .fun-fact {
-  background: #FFFBF0;
-  border: 1px solid #FFE66D;
-  border-radius: 8px;
-  padding: 10px 12px;
+  background: #FFFDF0;
+  border-left: 3px solid var(--accent3);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
   font-size: 13px;
-  color: #7A5C00;
+  color: #6B4F00;
   margin-bottom: 12px;
+  line-height: 1.55;
 }
-.fun-fact strong { color: #5A4000; }
-.card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border); }
-.read-more { font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none; }
-.read-more:hover { text-decoration: underline; }
-.age-badge { font-size: 11px; color: var(--muted); background: var(--bg); padding: 3px 8px; border-radius: 99px; }
+.fun-fact strong { color: #4A3600; }
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  gap: 8px;
+}
+.card-source { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: capitalize; }
+.age-badge {
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--bg);
+  padding: 3px 9px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
 
-/* Loading / Empty */
-.loading { text-align: center; padding: 4rem; color: var(--muted); }
-.loading-spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+/* ── Loading / Empty ── */
+.loading { text-align: center; padding: 5rem; color: var(--muted); grid-column: 1 / -1; }
+.loading-spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 1rem;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
-.empty { text-align: center; padding: 4rem; grid-column: 1/-1; }
-.empty-emoji { font-size: 48px; margin-bottom: 1rem; }
+.empty { text-align: center; padding: 4rem; grid-column: 1 / -1; }
+.empty-emoji { font-size: 52px; margin-bottom: 1rem; }
 .empty h3 { font-family: 'Fraunces', serif; font-size: 20px; margin-bottom: 8px; }
 .empty p { color: var(--muted); font-size: 14px; }
 
-/* Modal */
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
+/* ── Modal ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
 .modal-overlay.open { display: flex; }
-.modal { background: white; border-radius: 20px; max-width: 560px; width: 100%; max-height: 80vh; overflow-y: auto; }
-.modal-img { width: 100%; height: 220px; object-fit: cover; border-radius: 20px 20px 0 0; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 64px; }
-.modal-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 20px 20px 0 0; }
-.modal-body { padding: 1.5rem; }
-.modal-title { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 800; margin-bottom: 12px; line-height: 1.2; }
-.modal-summary { font-size: 15px; line-height: 1.7; color: #444; margin-bottom: 1rem; }
-.modal-fact { background: #FFFBF0; border: 1px solid #FFE66D; border-radius: 10px; padding: 14px; font-size: 14px; color: #7A5C00; margin-bottom: 1.5rem; }
-.modal-actions { display: flex; gap: 10px; }
-.btn-primary { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 99px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; font-family: 'DM Sans', sans-serif; }
-.btn-close { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 10px 20px; border-radius: 99px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.modal {
+  background: white;
+  border-radius: 22px;
+  max-width: 640px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  position: relative;
+  animation: modalIn 0.25s ease both;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: background 0.15s;
+}
+.modal-close:hover { background: rgba(0,0,0,0.8); }
+.modal-img {
+  width: 100%;
+  height: 240px;
+  background: var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 72px;
+  overflow: hidden;
+  border-radius: 22px 22px 0 0;
+}
+.modal-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 22px 22px 0 0; display: block; }
+.modal-body { padding: 1.75rem; }
+.modal-topic-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.modal-source { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: capitalize; }
+.modal-title {
+  font-family: 'Fraunces', serif;
+  font-size: 26px;
+  font-weight: 800;
+  margin-bottom: 14px;
+  line-height: 1.2;
+  color: var(--text);
+}
+.modal-summary { font-size: 15px; line-height: 1.75; color: #444; margin-bottom: 1.25rem; }
+.modal-fact {
+  background: #FFFDF0;
+  border-left: 4px solid var(--accent3);
+  border-radius: 0 10px 10px 0;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #6B4F00;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+.modal-actions { display: flex; flex-direction: column; gap: 12px; }
+.modal-actions-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 99px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: 'DM Sans', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(255,107,53,0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(255,107,53,0.45); }
+.btn-close {
+  background: var(--bg);
+  color: var(--text);
+  border: 1.5px solid var(--border);
+  padding: 12px 22px;
+  border-radius: 99px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.15s;
+}
+.btn-close:hover { background: var(--border); }
+.share-hint { font-size: 12px; color: var(--muted); }
 
-@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+/* ── Footer ── */
+footer {
+  background: var(--text);
+  color: white;
+  padding: 3rem 2rem 2rem;
+  margin-top: 4rem;
+}
+.footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.footer-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+.footer-logo {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.footer-logo span { color: var(--accent3); }
+.footer-tagline { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 4px; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; }
+.footer-links a {
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+.footer-links a:hover { color: white; }
+.footer-how {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.11);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
+  line-height: 1.65;
+}
+.footer-how strong { color: rgba(255,255,255,0.9); font-weight: 600; }
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.footer-trust { font-size: 13px; font-weight: 600; color: #a8e6a3; }
+.footer-copy { font-size: 12px; color: rgba(255,255,255,0.3); }
 
-@media (max-width: 600px) {
-  .hero { padding: 2rem 1rem 1.5rem; }
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Mobile ── */
+@media (max-width: 700px) {
+  :root { --header-h: 72px; }
+  .header-nav { padding: 0 1rem; }
+  .header-trust { display: none; }
+  .logo { font-size: 20px; }
+  .logo-tagline { display: none; }
+  .date-badge { display: none; }
+  .subscribe-btn { padding: 9px 16px; font-size: 12px; }
+
+  .hero { padding: 2.5rem 1rem 2rem; }
+  .hero h1 { font-size: clamp(24px, 8vw, 36px); }
+  .hero-sub { font-size: 14px; }
+  .trust-pill { font-size: 12px; padding: 7px 14px; }
+
+  .filters-wrap { padding: 0 1rem; }
   .main { padding: 1.5rem 1rem; }
-  .grid { grid-template-columns: 1fr; }
-  .stats { gap: 1rem; }
+  .grid { grid-template-columns: 1fr; gap: 1rem; }
+
+  .modal-title { font-size: 21px; }
+  .modal-img { height: 200px; }
+
+  footer { padding: 2rem 1rem 1.5rem; margin-top: 2.5rem; }
+  .footer-top { flex-direction: column; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
 }
 </style>
 </head>
 <body>
 
+<!-- ── Header ── -->
 <header class="header">
-  <div class="logo">🌟 The Daily <span>Whiz</span></div>
-  <div class="header-right">
-    <span class="date-badge" id="today-date"></span>
-    <a href="/signup.html" class="subscribe-btn">Subscribe</a>
-  </div>
+  <div class="header-bar"></div>
+  <nav class="header-nav">
+    <div class="logo-wrap">
+      <div class="logo">🌟 The Daily <span>Whiz</span></div>
+      <div class="logo-tagline">Safe, AI-filtered news for curious kids</div>
+    </div>
+
+    <div class="header-trust">✅ 100% Kid Safe</div>
+
+    <div class="header-right">
+      <span class="date-badge" id="today-date"></span>
+      <a href="/signup.html" class="subscribe-btn">📬 Get Newsletter</a>
+    </div>
+  </nav>
 </header>
 
+<!-- ── Hero ── -->
 <div class="hero">
+  <div class="hero-eyebrow">🤖 AI-Powered Safety Filtering</div>
   <h1>News made for <em>curious kids</em></h1>
-  <p>Safe, fun, and easy to read — fresh every day</p>
-  <div class="stats">
-    <div class="stat">
-      <div class="stat-num" id="stat-articles">—</div>
-      <div class="stat-label">Articles this week</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num">8</div>
-      <div class="stat-label">Topics covered</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num">100%</div>
-      <div class="stat-label">Kid safe</div>
-    </div>
+  <p class="hero-sub">Fresh, age-appropriate stories your kids will actually enjoy — curated and filtered every single day, so you don't have to.</p>
+  <div class="trust-signals">
+    <div class="trust-pill"><span class="pill-icon">🤖</span> AI Safety Filtered</div>
+    <div class="trust-pill"><span class="pill-icon">📅</span> Updated Daily</div>
+    <div class="trust-pill"><span class="pill-icon">👧</span> Ages 6–12</div>
   </div>
 </div>
 
+<!-- ── Topic Filters ── -->
 <div class="filters-wrap">
   <div class="filters">
     <div class="filter-chip active" data-topic="all">✨ All Topics</div>
@@ -279,30 +635,66 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   </div>
 </div>
 
+<!-- ── Articles ── -->
 <main class="main">
   <div class="section-header">
-    <div class="section-title">Latest Stories</div>
-    <div class="article-count" id="article-count"></div>
+    <div class="section-left">
+      <div class="section-title">Latest Stories</div>
+      <div class="article-count" id="article-count"></div>
+    </div>
+    <div class="section-note">Updated daily for curious minds</div>
   </div>
   <div id="articles-grid" class="grid">
     <div class="loading">
       <div class="loading-spinner"></div>
-      <p>Loading today's stories...</p>
+      <p>Loading today's stories…</p>
     </div>
   </div>
 </main>
 
-<!-- Modal -->
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-logo">🌟 The Daily <span>Whiz</span></div>
+        <div class="footer-tagline">Safe news for kids, trusted by parents</div>
+      </div>
+      <div class="footer-links">
+        <a href="/signup.html">📬 Subscribe Free</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="/privacy.html">Privacy Policy</a>
+      </div>
+    </div>
+    <div class="footer-how" id="how-it-works">
+      <strong>How it works:</strong> Every day, The Daily Whiz uses AI to scan hundreds of news sources, filter out anything inappropriate, and rewrite stories in friendly language kids aged 6–12 can understand and enjoy. Every article is checked for accuracy and safety before it appears here.
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-trust">✅ 100% AI-filtered, kid-safe content — no scary stories, no ads</div>
+      <div class="footer-copy">© 2025 The Daily Whiz · safekidsnews.com</div>
+    </div>
+  </div>
+</footer>
+
+<!-- ── Modal ── -->
 <div class="modal-overlay" id="modal" onclick="closeModal(event)">
-  <div class="modal">
+  <div class="modal" id="modal-box">
+    <button class="modal-close" id="modal-close-x" aria-label="Close">✕</button>
     <div class="modal-img" id="modal-img"></div>
     <div class="modal-body">
+      <div class="modal-topic-row">
+        <span id="modal-topic-tag"></span>
+        <span class="modal-source" id="modal-source"></span>
+      </div>
       <div class="modal-title" id="modal-title"></div>
       <div class="modal-summary" id="modal-summary"></div>
       <div class="modal-fact" id="modal-fact"></div>
       <div class="modal-actions">
-        <a href="#" id="modal-link" class="btn-primary" target="_blank">Read original article →</a>
-        <button class="btn-close" onclick="document.getElementById('modal').classList.remove('open')">Close</button>
+        <div class="modal-actions-row">
+          <a href="#" id="modal-link" class="btn-primary" target="_blank" rel="noopener">Read original article →</a>
+          <button class="btn-close" id="modal-close-btn">Close</button>
+        </div>
+        <div class="share-hint">📤 Share this story with your child — great conversation starter!</div>
       </div>
     </div>
   </div>
@@ -312,16 +704,14 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // ← Replace these with your real Firebase config values
   const firebaseConfig = {
-
-  apiKey: "AIzaSyB0nDZnYfTI5j15O9R73M123YxypRmKcrI",
-  authDomain: "kidsnews-f9c81.firebaseapp.com",
-  projectId: "kidsnews-f9c81",
-  storageBucket: "kidsnews-f9c81.firebasestorage.app",
-  messagingSenderId: "35324641174",
-  appId: "1:35324641174:web:710e147be9c55f4b5de7b7",
-  measurementId: "G-CK5N5G0GYQ"
+    apiKey: "AIzaSyB0nDZnYfTI5j15O9R73M123YxypRmKcrI",
+    authDomain: "kidsnews-f9c81.firebaseapp.com",
+    projectId: "kidsnews-f9c81",
+    storageBucket: "kidsnews-f9c81.firebasestorage.app",
+    messagingSenderId: "35324641174",
+    appId: "1:35324641174:web:710e147be9c55f4b5de7b7",
+    measurementId: "G-CK5N5G0GYQ"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -344,6 +734,31 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   let allArticles = [];
   let activeFilter = 'all';
 
+  function getReadTime(text) {
+    if (!text) return '1 min read';
+    const words = text.trim().split(/\s+/).length;
+    return `${Math.max(1, Math.ceil(words / 150))} min read`;
+  }
+
+  function getSourceName(article) {
+    if (article.source) return article.source;
+    if (!article.url) return '';
+    try {
+      return new URL(article.url).hostname.replace(/^www\./, '').split('.')[0];
+    } catch { return ''; }
+  }
+
+  function formatDate(dateStr) {
+    try {
+      return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } catch { return ''; }
+  }
+
+  function closeModalUI() {
+    document.getElementById('modal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
   async function fetchArticles() {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -358,7 +773,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
       );
       const snap = await getDocs(q);
       allArticles = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      document.getElementById('stat-articles').textContent = allArticles.length;
+      updateFilterCounts();
       renderArticles();
     } catch (err) {
       console.error('Firestore error:', err);
@@ -366,18 +781,37 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
         <div class="empty">
           <div class="empty-emoji">⚠️</div>
           <h3>Could not load articles</h3>
-          <p>Please check your Firebase config values and Firestore rules.</p>
+          <p>Please check your Firebase config and Firestore rules.</p>
         </div>`;
     }
+  }
+
+  function updateFilterCounts() {
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+      const topic = chip.dataset.topic;
+      const count = topic === 'all'
+        ? allArticles.length
+        : allArticles.filter(a => a.topics?.includes(topic)).length;
+
+      let badge = chip.querySelector('.filter-count');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'filter-count';
+        chip.appendChild(badge);
+      }
+      badge.textContent = count;
+      chip.style.opacity = (count === 0 && topic !== 'all') ? '0.45' : '1';
+    });
   }
 
   function renderArticles() {
     const grid = document.getElementById('articles-grid');
     const filtered = activeFilter === 'all'
       ? allArticles
-      : allArticles.filter(a => a.topics && a.topics.includes(activeFilter));
+      : allArticles.filter(a => a.topics?.includes(activeFilter));
 
-    document.getElementById('article-count').textContent = `${filtered.length} stories`;
+    document.getElementById('article-count').textContent =
+      `${filtered.length} ${filtered.length === 1 ? 'story' : 'stories'}`;
 
     if (filtered.length === 0) {
       grid.innerHTML = `<div class="empty">
@@ -392,24 +826,32 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
       const topic = article.topics?.[0] || 'Science';
       const color = topicColors[topic] || '#888';
       const emoji = topicEmojis[topic] || '📰';
-      const date = new Date(article.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const date = formatDate(article.date);
+      const readTime = getReadTime(article.kid_summary);
+      const source = getSourceName(article);
+      const summary = (article.kid_summary || '').substring(0, 130);
+      const summaryDisplay = summary + ((article.kid_summary || '').length > 130 ? '…' : '');
+
       const imgHtml = article.url_to_image
         ? `<div class="card-img"><img src="${article.url_to_image}" alt="" onerror="this.parentElement.innerHTML='${emoji}'" loading="lazy"/></div>`
         : `<div class="card-img">${emoji}</div>`;
 
-      return `<div class="card" onclick="openModal(${i}, '${activeFilter}')" style="animation: fadeUp 0.4s ease ${i * 0.05}s both">
+      return `<div class="card" onclick="openModal(${i}, '${activeFilter}')" style="animation: fadeUp 0.4s ease ${Math.min(i * 0.05, 0.4)}s both">
         ${imgHtml}
         <div class="card-body">
           <div class="card-meta">
             <span class="topic-tag" style="background:${color}">${topic}</span>
-            <span class="card-date">${date}</span>
+            <div class="card-meta-right">
+              <span class="card-date">${date}</span>
+              <span class="read-time">${readTime}</span>
+            </div>
           </div>
           <div class="card-title">${article.kid_title || 'Untitled'}</div>
-          <div class="card-summary">${(article.kid_summary || '').substring(0, 120)}...</div>
+          <div class="card-summary">${summaryDisplay}</div>
           ${article.did_you_know ? `<div class="fun-fact"><strong>💡 Did you know?</strong> ${article.did_you_know}</div>` : ''}
           <div class="card-footer">
-            ${article.url ? `<a class="read-more" href="${article.url}" target="_blank" onclick="event.stopPropagation()">Read original →</a>` : '<span></span>'}
-            <span class="age-badge">Ages ${article.age_group || '8-10'}</span>
+            <span class="card-source">${source ? '📰 ' + source : ''}</span>
+            <span class="age-badge">Ages ${article.age_group || '6–12'}</span>
           </div>
         </div>
       </div>`;
@@ -422,35 +864,65 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
       document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
       activeFilter = chip.dataset.topic;
-      renderArticles();
+      const grid = document.getElementById('articles-grid');
+      grid.style.opacity = '0';
+      setTimeout(() => {
+        renderArticles();
+        grid.style.opacity = '1';
+      }, 150);
     });
   });
 
-  // Modal
+  // Modal open
   window.openModal = (index, filter) => {
-    const filtered = filter === 'all' ? allArticles : allArticles.filter(a => a.topics && a.topics.includes(filter));
+    const filtered = filter === 'all'
+      ? allArticles
+      : allArticles.filter(a => a.topics?.includes(filter));
     const article = filtered[index];
     if (!article) return;
 
-    const emoji = topicEmojis[article.topics?.[0]] || '📰';
+    const topic = article.topics?.[0] || 'Science';
+    const color = topicColors[topic] || '#888';
+    const emoji = topicEmojis[topic] || '📰';
+    const source = getSourceName(article);
+
     document.getElementById('modal-img').innerHTML = article.url_to_image
       ? `<img src="${article.url_to_image}" alt="" onerror="this.parentElement.innerHTML='${emoji}'"/>`
       : emoji;
+
+    document.getElementById('modal-topic-tag').innerHTML =
+      `<span class="topic-tag" style="background:${color}">${topic}</span>`;
+    document.getElementById('modal-source').textContent = source ? '· ' + source : '';
     document.getElementById('modal-title').textContent = article.kid_title || '';
     document.getElementById('modal-summary').textContent = article.kid_summary || '';
-    document.getElementById('modal-fact').innerHTML = article.did_you_know
-      ? `<strong>💡 Did you know?</strong> ${article.did_you_know}` : '';
+
+    const factEl = document.getElementById('modal-fact');
+    if (article.did_you_know) {
+      factEl.innerHTML = `<strong>💡 Did you know?</strong> ${article.did_you_know}`;
+      factEl.style.display = '';
+    } else {
+      factEl.style.display = 'none';
+    }
+
     const link = document.getElementById('modal-link');
-    if (article.url) { link.href = article.url; link.style.display = 'inline-flex'; }
+    if (article.url) { link.href = article.url; link.style.display = ''; }
     else { link.style.display = 'none'; }
+
     document.getElementById('modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
   };
 
+  // Modal close — click on overlay backdrop
   window.closeModal = (e) => {
-    if (e.target === document.getElementById('modal')) {
-      document.getElementById('modal').classList.remove('open');
-    }
+    if (e.target === document.getElementById('modal')) closeModalUI();
   };
+
+  document.getElementById('modal-close-x').addEventListener('click', closeModalUI);
+  document.getElementById('modal-close-btn').addEventListener('click', closeModalUI);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModalUI();
+  });
 
   fetchArticles();
 </script>
