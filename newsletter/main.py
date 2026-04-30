@@ -5,7 +5,7 @@ from datetime import datetime
 from newsapi import NewsApiClient
 import anthropic
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, EMail, HtmlContent, Content
+from sendgrid.helpers.mail import Mail, Email, HtmlContent, Content
 import firebase_admin
 from firebase_admin import credentials, firestore
 import json
