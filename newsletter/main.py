@@ -5,7 +5,7 @@ from datetime import datetime
 from newsapi import NewsApiClient
 import anthropic
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, HtmlContent
+from sendgrid.helpers.mail import Mail, HtmlContent, Content
 import firebase_admin
 from firebase_admin import credentials, firestore
 import json
@@ -301,11 +301,9 @@ def send_newsletter(articles_data, from_email_address, to_email_addresses, date_
         from_email=from_email_address,
         to_emails=recipient_list,
         subject=f"🌞 The Daily Whiz — {date_str}",
+        plain_text_content=plain_body,
+        html_content=html_body,
     )
-    message.content = [
-        {"type": "text/plain", "value": plain_body},
-        {"type": "text/html", "value": html_body},
-    ]
     try:
         response = sg.send(message)
         print(f"✅ Newsletter sent! Status: {response.status_code}")
