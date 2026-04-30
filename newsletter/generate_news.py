@@ -23,9 +23,9 @@ sg = SendGridAPIClient(api_key=SENDGRID_API_KEY)
 # --- Firebase ---
 def init_firebase():
     if not firebase_admin._apps:
-        service_account_str = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
+        service_account_str = os.environ.get('FIREBASE_SERVICE_ACCOUNT_KIDSNEWS_F9C81')
         if not service_account_str:
-            raise ValueError("FIREBASE_SERVICE_ACCOUNT secret is missing!")
+            raise ValueError("FIREBASE_SERVICE_ACCOUNT_KIDSNEWS_F9C81 secret is missing!")
         service_account = json.loads(service_account_str)
         cred = credentials.Certificate(service_account)
         firebase_admin.initialize_app(cred)
