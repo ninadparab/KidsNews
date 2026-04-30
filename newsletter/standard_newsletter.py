@@ -27,7 +27,7 @@ sg = SendGridAPIClient(api_key=SENDGRID_API_KEY)
 
 # --- Firebase setup ---
 def init_firebase():
-    service_account = json.loads(os.environ.get('FIREBASE_SERVICE_ACCOUNT_KIDSNEWS_F9C81'))
+    service_account = json.loads(os.environ.get('FIREBASE_SERVICE_ACCOUNT'))
     cred = credentials.Certificate(service_account)
     firebase_admin.initialize_app(cred)
     return firestore.client()

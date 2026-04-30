@@ -33,7 +33,7 @@ jobs:
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
           RECIPIENT_EMAILS: ${{ secrets.RECIPIENT_EMAILS }}
-          FIREBASE_SERVICE_ACCOUNT_KIDSNEWS_F9C81: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KIDSNEWS_F9C81 }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           # Morning schedule or manual trigger = newsletter run; evening schedule = news-only
           IS_NEWSLETTER_RUN: ${{ github.event.schedule == '0 3 * * *' && 'false' || 'true' }}
         run: python main.py
@@ -46,6 +46,6 @@ jobs:
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
-          FIREBASE_SERVICE_ACCOUNT_KIDSNEWS_F9C81: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KIDSNEWS_F9C81 }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           IS_NEWSLETTER_RUN: 'true'
         run: python generate_news.py
