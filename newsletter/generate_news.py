@@ -246,11 +246,9 @@ def send_personalized_email(email, articles_data, date_str, age_group, topics):
         from_email=SENDER_EMAIL,
         to_emails=email,
         subject=f"🌟 Your Daily Whiz — {date_str}",
+        plain_text_content=plain_body,
+        html_content=html_body,
     )
-    message.content = [
-        {"type": "text/plain", "value": plain_body},
-        {"type": "text/html", "value": html_body},
-    ]
     try:
         sg.send(message)
         print(f"✅ Email sent to {email}")
