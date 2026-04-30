@@ -3,7 +3,7 @@ import time
 import urllib.parse
 from datetime import datetime
 from newsapi import NewsApiClient
-from google import genai
+import anthropic
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, HtmlContent
 import firebase_admin
@@ -12,14 +12,13 @@ import json
 import requests as http_requests
 
 # --- Clients ---
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL')
 RECIPIENT_EMAILS = os.environ.get('RECIPIENT_EMAILS')
 IS_NEWSLETTER_RUN = os.environ.get('IS_NEWSLETTER_RUN', 'true').lower() == 'true'
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = anthropic.Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
 newsapi = NewsApiClient(api_key=NEWS_API_KEY)
 sg = SendGridAPIClient(api_key=SENDGRID_API_KEY)
 
@@ -166,11 +165,12 @@ TASK:
    DID_YOU_KNOW: [1 surprising fun fact related to this story]"""
 
     try:
-        response = client.models.generate_content(
-            model="gemini-2.0-flash-lite",
-            contents=prompt
+        response = client.messages.create(
+            model="claude-haiku-4-5",
+            max_tokens=512,
+            messages=[{"role": "user", "content": prompt}],
         )
-        return response.text
+        return response.content[0].text
     except Exception as e:
         return f"STATUS: ERROR ({str(e)})"
 
@@ -353,13 +353,12 @@ if __name__ == "__main__":
                 elif stripped.startswith('DID_YOU_KNOW:'):
                     did_you_know = stripped.replace('DID_YOU_KNOW:', '').strip()
 
-            # Determine topic: try Gemini output first, then keyword fallback
             topic = parse_topic(result)
             if not topic:
                 topic = keyword_fallback_topic(f"{article_title} {kid_summary}")
                 print(f"   Topic (keyword fallback): {topic}")
             else:
-                print(f"   Topic (Gemini): {topic}")
+                print(f"   Topic (AI): {topic}")
 
             best_image, image_source = get_best_image(url_to_image, topic)
 
