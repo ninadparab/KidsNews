@@ -2,25 +2,31 @@ import { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet, FlatList, View, Text, TouchableOpacity,
   Image, ActivityIndicator, RefreshControl, ScrollView, Platform,
+  AppState, AppStateStatus,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue, useAnimatedStyle, interpolate,
-  Extrapolate,
 } from 'react-native-reanimated';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const FIREBASE_PROJECT_ID = 'kidsnews-f9c81';
+const CACHE_KEY = 'articles_cache';
+const CACHE_TS_KEY = 'articles_ts';
+const CACHE_MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes
 
 const TOPIC_EMOJIS: Record<string, string> = {
   Science: '🔬', Space: '🚀', Animals: '🦁', Sports: '⚽',
   Technology: '💻', Weather: '🌤️', Arts: '🎨', Environment: '🌿',
+  Health: '🏥', History: '🏛️',
 };
 
 const TOPIC_COLORS: Record<string, string> = {
   Science: '#4ECDC4', Space: '#9B5DE5', Animals: '#00B4D8',
   Sports: '#FF6B35', Technology: '#06D6A0', Weather: '#118AB2',
-  Arts: '#EF476F', Environment: '#57CC99',
+  Arts: '#EF476F', Environment: '#57CC99', Health: '#FF9F1C', History: '#A8956E',
 };
 
 const TOPICS = ['All', 'Science', 'Space', 'Animals', 'Sports', 'Technology', 'Weather', 'Arts', 'Environment'];
@@ -36,7 +42,9 @@ interface Article {
   url_to_image: string;
   date: string;
   source?: string;
+  source_name?: string;
   age_group?: string;
+  created_at?: { seconds: number } | null;
 }
 
 function getReadTime(text: string): string {
@@ -46,6 +54,7 @@ function getReadTime(text: string): string {
 }
 
 function getSourceName(article: Article): string {
+  if (article.source_name) return article.source_name;
   if (article.source) return article.source;
   if (!article.url) return '';
   try {
@@ -53,10 +62,22 @@ function getSourceName(article: Article): string {
   } catch { return ''; }
 }
 
-function formatDate(dateStr: string): string {
+function formatRelativeTime(article: Article): string {
+  // Prefer created_at Firestore timestamp for accurate relative time
+  if (article.created_at?.seconds) {
+    const date = new Date(article.created_at.seconds * 1000);
+    const diffMs = Date.now() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+  }
+  // Fall back to date string
+  if (!article.date) return '';
   try {
-    return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  } catch { return dateStr; }
+    return new Date(article.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch { return article.date; }
 }
 
 function getGreeting(): string {
@@ -74,6 +95,25 @@ function getLastUpdatedText(date: Date | null): string {
   return `Updated ${mins} min ago`;
 }
 
+// Returns true if we should auto-refresh because a pipeline run has happened since last fetch.
+// Compares UTC threshold hours (15:00 UTC = 7AM PST, 03:00 UTC = 7PM PST).
+function shouldAutoRefresh(lastFetchTimestamp: number): boolean {
+  const now = new Date();
+  const lastFetch = new Date(lastFetchTimestamp);
+
+  const thresholds = [
+    new Date(now), // morning threshold: today at 15:00 UTC
+    new Date(now), // evening threshold: today at 03:00 UTC
+  ];
+  thresholds[0].setUTCHours(15, 0, 0, 0);
+  thresholds[1].setUTCHours(3, 0, 0, 0);
+
+  for (const threshold of thresholds) {
+    if (now >= threshold && lastFetch < threshold) return true;
+  }
+  return false;
+}
+
 export default function HomeScreen() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [filtered, setFiltered] = useState<Article[]>([]);
@@ -81,12 +121,15 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const activeTopicRef = useRef(activeTopic);
   activeTopicRef.current = activeTopic;
+  const lastFetchTsRef = useRef<number>(0);
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const scrollY = useSharedValue(0);
   const router = useRouter();
 
-  async function fetchArticles() {
+  async function fetchArticles(useSpinner = true) {
     try {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -117,6 +160,11 @@ export default function HomeScreen() {
         .filter((item: any) => item.document)
         .map((item: any) => {
           const f = item.document.fields;
+          const createdAtVal = f.created_at;
+          let created_at: { seconds: number } | null = null;
+          if (createdAtVal?.timestampValue) {
+            created_at = { seconds: Math.floor(new Date(createdAtVal.timestampValue).getTime() / 1000) };
+          }
           return {
             id: item.document.name.split('/').pop(),
             kid_title: f.kid_title?.stringValue || '',
@@ -127,7 +175,9 @@ export default function HomeScreen() {
             url_to_image: f.url_to_image?.stringValue || '',
             date: f.date?.stringValue || '',
             source: f.source?.stringValue || '',
+            source_name: f.source_name?.stringValue || '',
             age_group: f.age_group?.stringValue || '',
+            created_at,
           };
         });
 
@@ -135,6 +185,13 @@ export default function HomeScreen() {
       const topic = activeTopicRef.current;
       setFiltered(topic === 'All' ? docs : docs.filter(a => a.topics?.includes(topic)));
       setLastUpdated(new Date());
+      const now = Date.now();
+      lastFetchTsRef.current = now;
+      setImageErrors({});
+
+      // Persist cache
+      await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(docs));
+      await AsyncStorage.setItem(CACHE_TS_KEY, String(now));
     } catch (err) {
       console.error('Failed to fetch articles:', err);
     } finally {
@@ -143,7 +200,49 @@ export default function HomeScreen() {
     }
   }
 
-  useEffect(() => { fetchArticles(); }, []);
+  // Load from cache then fetch in background
+  useEffect(() => {
+    async function init() {
+      try {
+        const [cachedRaw, tsRaw] = await Promise.all([
+          AsyncStorage.getItem(CACHE_KEY),
+          AsyncStorage.getItem(CACHE_TS_KEY),
+        ]);
+        const cacheTs = tsRaw ? Number(tsRaw) : 0;
+        const isFresh = cacheTs && Date.now() - cacheTs < CACHE_MAX_AGE_MS;
+
+        if (cachedRaw && isFresh) {
+          const cached: Article[] = JSON.parse(cachedRaw);
+          setArticles(cached);
+          setFiltered(cached);
+          setLastUpdated(new Date(cacheTs));
+          lastFetchTsRef.current = cacheTs;
+          setLoading(false);
+          // Fetch fresh in background only if a pipeline run happened since cache
+          if (shouldAutoRefresh(cacheTs)) fetchArticles(false);
+        } else {
+          await fetchArticles(true);
+        }
+      } catch {
+        await fetchArticles(true);
+      }
+    }
+    init();
+  }, []);
+
+  // AppState: auto-refresh when coming to foreground if stale
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (nextState: AppStateStatus) => {
+      const prev = appStateRef.current;
+      appStateRef.current = nextState;
+      if (prev.match(/inactive|background/) && nextState === 'active') {
+        if (shouldAutoRefresh(lastFetchTsRef.current)) {
+          fetchArticles(false);
+        }
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   function filterByTopic(topic: string) {
     setActiveTopic(topic);
@@ -170,9 +269,8 @@ export default function HomeScreen() {
     });
   }
 
-  // Animated style for sticky filters
   const filterAnimStyle = useAnimatedStyle(() => {
-    const translateY = interpolate(scrollY.value, [0, HERO_HEIGHT], [0, HERO_HEIGHT], Extrapolate.CLAMP);
+    const translateY = interpolate(scrollY.value, [0, HERO_HEIGHT], [0, HERO_HEIGHT], 'clamp');
     return { transform: [{ translateY }] };
   });
 
@@ -195,7 +293,6 @@ export default function HomeScreen() {
 
         <Text style={styles.heroTagline}>Here's today's kid-safe news ✨</Text>
 
-        {/* Trust signals */}
         <View style={styles.trustSignals}>
           <View style={styles.trustSignal}>
             <Text style={styles.trustIcon}>🤖</Text>
@@ -270,15 +367,24 @@ export default function HomeScreen() {
     const emoji = TOPIC_EMOJIS[topic] || '📰';
     const readTime = getReadTime(item.kid_summary);
     const source = getSourceName(item);
+    const timeLabel = formatRelativeTime(item);
+    const hasImageError = imageErrors[item.id];
 
     return (
       <TouchableOpacity style={styles.card} onPress={() => openArticle(item)} activeOpacity={0.85}>
-        {item.url_to_image ? (
-          <Image
-            source={{ uri: item.url_to_image }}
-            style={styles.cardImage}
-            resizeMode="cover"
-          />
+        {item.url_to_image && !hasImageError ? (
+          <View style={styles.cardImageWrap}>
+            <Image
+              source={{ uri: item.url_to_image }}
+              style={styles.cardImage}
+              resizeMode="cover"
+              onError={() => setImageErrors(prev => ({ ...prev, [item.id]: true }))}
+            />
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.25)']}
+              style={styles.cardImageGradient}
+            />
+          </View>
         ) : (
           <View style={[styles.cardImagePlaceholder, { backgroundColor: color + '22' }]}>
             <Text style={styles.cardImageEmoji}>{emoji}</Text>
@@ -291,7 +397,7 @@ export default function HomeScreen() {
               <Text style={styles.topicTagText}>{topic}</Text>
             </View>
             <View style={styles.cardMetaRight}>
-              <Text style={styles.cardDate}>{formatDate(item.date)}</Text>
+              <Text style={styles.cardDate}>{timeLabel}</Text>
               <Text style={styles.readTime}> · {readTime}</Text>
             </View>
           </View>
@@ -362,9 +468,11 @@ export default function HomeScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); fetchArticles(); }}
+            onRefresh={() => { setRefreshing(true); fetchArticles(false); }}
             tintColor="#FF6B35"
             colors={['#FF6B35']}
+            title="Checking for new stories..."
+            titleColor="#8A7A65"
           />
         }
         ListEmptyComponent={
@@ -526,7 +634,15 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
   },
+  cardImageWrap: { width: '100%', height: 185, position: 'relative' },
   cardImage: { width: '100%', height: 185 },
+  cardImageGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+  },
   cardImagePlaceholder: { width: '100%', height: 185, justifyContent: 'center', alignItems: 'center' },
   cardImageEmoji: { fontSize: 56 },
   cardBody: { padding: 16 },

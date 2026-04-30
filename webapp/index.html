@@ -86,6 +86,41 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
   font-weight: 500;
   white-space: nowrap;
 }
+.last-updated-badge {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.refresh-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.6);
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.refresh-btn:hover { border-color: rgba(255,255,255,0.5); color: white; }
+.refresh-btn.spinning { animation: spin 0.8s linear infinite; pointer-events: none; }
+
+/* ── New articles banner ── */
+.new-articles-banner {
+  display: none;
+  background: linear-gradient(90deg, #4ECDC4, #06D6A0);
+  color: white;
+  text-align: center;
+  padding: 10px 1rem;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.new-articles-banner a { color: white; text-decoration: underline; }
 .subscribe-btn {
   background: var(--accent);
   color: white;
@@ -568,6 +603,7 @@ footer {
   .logo { font-size: 20px; }
   .logo-tagline { display: none; }
   .date-badge { display: none; }
+  .last-updated-badge { display: none; }
   .subscribe-btn { padding: 9px 16px; font-size: 12px; }
 
   .hero { padding: 2.5rem 1rem 2rem; }
@@ -603,6 +639,8 @@ footer {
 
     <div class="header-right">
       <span class="date-badge" id="today-date"></span>
+      <span class="last-updated-badge" id="last-updated-text"></span>
+      <button class="refresh-btn" id="refresh-btn" onclick="manualRefresh()" title="Refresh stories">↻</button>
       <a href="/signup.html" class="subscribe-btn">📬 Get Newsletter</a>
     </div>
   </nav>
@@ -618,6 +656,11 @@ footer {
     <div class="trust-pill"><span class="pill-icon">📅</span> Updated Daily</div>
     <div class="trust-pill"><span class="pill-icon">👧</span> Ages 6–12</div>
   </div>
+</div>
+
+<!-- ── New articles banner ── -->
+<div class="new-articles-banner" id="new-articles-banner" onclick="manualRefresh()">
+  ✨ New stories available — <a href="#">click to refresh</a>
 </div>
 
 <!-- ── Topic Filters ── -->
@@ -720,11 +763,12 @@ footer {
   const topicColors = {
     Science: '#4ECDC4', Space: '#9B5DE5', Animals: '#00B4D8',
     Sports: '#FF6B35', Technology: '#06D6A0', Weather: '#118AB2',
-    Arts: '#EF476F', Environment: '#57CC99'
+    Arts: '#EF476F', Environment: '#57CC99', Health: '#FF9F1C', History: '#A8956E'
   };
   const topicEmojis = {
     Science: '🔬', Space: '🚀', Animals: '🦁', Sports: '⚽',
-    Technology: '💻', Weather: '🌤️', Arts: '🎨', Environment: '🌿'
+    Technology: '💻', Weather: '🌤️', Arts: '🎨', Environment: '🌿',
+    Health: '🏥', History: '🏛️'
   };
 
   document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US', {
@@ -733,7 +777,14 @@ footer {
 
   let allArticles = [];
   let activeFilter = 'all';
+  let lastFetchTime = null;
+  let latestCreatedAt = null;
 
+  const CACHE_KEY = 'articles_cache';
+  const CACHE_TS_KEY = 'articles_ts';
+  const CACHE_MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes
+
+  // --- Helpers ---
   function getReadTime(text) {
     if (!text) return '1 min read';
     const words = text.trim().split(/\s+/).length;
@@ -741,6 +792,7 @@ footer {
   }
 
   function getSourceName(article) {
+    if (article.source_name) return article.source_name;
     if (article.source) return article.source;
     if (!article.url) return '';
     try {
@@ -748,10 +800,41 @@ footer {
     } catch { return ''; }
   }
 
-  function formatDate(dateStr) {
-    try {
-      return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    } catch { return ''; }
+  function formatRelativeTime(dateInput) {
+    if (!dateInput) return '';
+    let date;
+    if (dateInput && typeof dateInput === 'object' && dateInput.seconds) {
+      // Firestore Timestamp object
+      date = new Date(dateInput.seconds * 1000);
+    } else if (typeof dateInput === 'string' && dateInput.length === 10) {
+      // Date-only string like "2025-04-29" — show short date
+      return new Date(dateInput + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } else {
+      date = new Date(dateInput);
+    }
+    if (isNaN(date)) return '';
+    const diffMs = Date.now() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function formatLastUpdated(ts) {
+    if (!ts) return '';
+    const diffMins = Math.floor((Date.now() - ts) / 60000);
+    if (diffMins < 1) return 'Updated just now';
+    if (diffMins === 1) return 'Updated 1 min ago';
+    if (diffMins < 60) return `Updated ${diffMins} min ago`;
+    const h = Math.floor(diffMins / 60);
+    return `Updated ${h}h ago`;
+  }
+
+  function updateLastUpdatedDisplay() {
+    const el = document.getElementById('last-updated-text');
+    if (el && lastFetchTime) el.textContent = formatLastUpdated(lastFetchTime);
   }
 
   function closeModalUI() {
@@ -759,10 +842,33 @@ footer {
     document.body.style.overflow = '';
   }
 
-  async function fetchArticles() {
+  // --- Caching ---
+  function saveToCache(articles) {
+    try {
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify(articles));
+      sessionStorage.setItem(CACHE_TS_KEY, String(Date.now()));
+    } catch (e) { /* sessionStorage quota exceeded — ignore */ }
+  }
+
+  function loadFromCache() {
+    try {
+      const ts = Number(sessionStorage.getItem(CACHE_TS_KEY));
+      if (!ts || Date.now() - ts > CACHE_MAX_AGE_MS) return null;
+      const raw = sessionStorage.getItem(CACHE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
+  // --- Fetch ---
+  async function fetchArticles(showSpinner = true) {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const cutoff = sevenDaysAgo.toISOString().split('T')[0];
+
+    if (showSpinner) {
+      const btn = document.getElementById('refresh-btn');
+      if (btn) btn.classList.add('spinning');
+    }
 
     try {
       const q = query(
@@ -773,6 +879,17 @@ footer {
       );
       const snap = await getDocs(q);
       allArticles = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      saveToCache(allArticles);
+      lastFetchTime = Date.now();
+
+      // Track latest created_at for change detection
+      if (allArticles.length > 0) {
+        const first = allArticles[0];
+        latestCreatedAt = first.created_at?.seconds || null;
+      }
+
+      document.getElementById('new-articles-banner').style.display = 'none';
+      updateLastUpdatedDisplay();
       updateFilterCounts();
       renderArticles();
     } catch (err) {
@@ -783,8 +900,37 @@ footer {
           <h3>Could not load articles</h3>
           <p>Please check your Firebase config and Firestore rules.</p>
         </div>`;
+    } finally {
+      const btn = document.getElementById('refresh-btn');
+      if (btn) btn.classList.remove('spinning');
     }
   }
+
+  // Check for new articles without re-rendering (for the auto-refresh interval)
+  async function checkForNewArticles() {
+    updateLastUpdatedDisplay();
+    try {
+      const q = query(
+        collection(db, 'articles'),
+        orderBy('created_at', 'desc'),
+        limit(1)
+      );
+      const snap = await getDocs(q);
+      if (snap.empty) return;
+      const latest = snap.docs[0].data();
+      const latestSec = latest.created_at?.seconds || 0;
+      if (latestCreatedAt && latestSec > latestCreatedAt) {
+        document.getElementById('new-articles-banner').style.display = 'block';
+      }
+    } catch { /* silent — non-critical */ }
+  }
+
+  // Manual refresh (called by button and banner)
+  window.manualRefresh = async () => {
+    sessionStorage.removeItem(CACHE_KEY);
+    sessionStorage.removeItem(CACHE_TS_KEY);
+    await fetchArticles(true);
+  };
 
   function updateFilterCounts() {
     document.querySelectorAll('.filter-chip').forEach(chip => {
@@ -826,14 +972,20 @@ footer {
       const topic = article.topics?.[0] || 'Science';
       const color = topicColors[topic] || '#888';
       const emoji = topicEmojis[topic] || '📰';
-      const date = formatDate(article.date);
+      const timeLabel = article.created_at
+        ? formatRelativeTime(article.created_at)
+        : formatRelativeTime(article.date);
       const readTime = getReadTime(article.kid_summary);
       const source = getSourceName(article);
       const summary = (article.kid_summary || '').substring(0, 130);
       const summaryDisplay = summary + ((article.kid_summary || '').length > 130 ? '…' : '');
 
+      const unsplashCredit = article.image_source === 'unsplash'
+        ? `<div style="position:absolute;bottom:4px;right:6px;font-size:9px;color:rgba(255,255,255,0.7);background:rgba(0,0,0,0.35);padding:2px 5px;border-radius:4px;">Photo: Unsplash</div>`
+        : '';
+
       const imgHtml = article.url_to_image
-        ? `<div class="card-img"><img src="${article.url_to_image}" alt="" onerror="this.parentElement.innerHTML='${emoji}'" loading="lazy"/></div>`
+        ? `<div class="card-img" style="position:relative;"><img src="${article.url_to_image}" alt="" onerror="this.parentElement.innerHTML='${emoji}'" loading="lazy" style="transition:filter 0.3s;" onload="this.style.filter='none'" />${unsplashCredit}</div>`
         : `<div class="card-img">${emoji}</div>`;
 
       return `<div class="card" onclick="openModal(${i}, '${activeFilter}')" style="animation: fadeUp 0.4s ease ${Math.min(i * 0.05, 0.4)}s both">
@@ -842,7 +994,7 @@ footer {
           <div class="card-meta">
             <span class="topic-tag" style="background:${color}">${topic}</span>
             <div class="card-meta-right">
-              <span class="card-date">${date}</span>
+              <span class="card-date">${timeLabel}</span>
               <span class="read-time">${readTime}</span>
             </div>
           </div>
@@ -912,7 +1064,7 @@ footer {
     document.body.style.overflow = 'hidden';
   };
 
-  // Modal close — click on overlay backdrop
+  // Modal close
   window.closeModal = (e) => {
     if (e.target === document.getElementById('modal')) closeModalUI();
   };
@@ -924,7 +1076,24 @@ footer {
     if (e.key === 'Escape') closeModalUI();
   });
 
-  fetchArticles();
+  // --- Startup: use cache if fresh, otherwise fetch ---
+  const cached = loadFromCache();
+  if (cached && cached.length > 0) {
+    allArticles = cached;
+    lastFetchTime = Number(sessionStorage.getItem(CACHE_TS_KEY));
+    updateLastUpdatedDisplay();
+    updateFilterCounts();
+    renderArticles();
+    // Fetch fresh in background to check for updates
+    fetchArticles(false);
+  } else {
+    fetchArticles(true);
+  }
+
+  // Auto-check for new articles every 30 minutes
+  setInterval(checkForNewArticles, CACHE_MAX_AGE_MS);
+  // Update "X min ago" display every minute
+  setInterval(updateLastUpdatedDisplay, 60000);
 </script>
 </body>
 </html>

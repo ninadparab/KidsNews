@@ -1,11 +1,17 @@
 name: Daily Kids News Digest
 on:
   schedule:
-    - cron: '0 14 * * *'
+    - cron: '0 15 * * *'   # 7:00 AM PST (UTC-8) — morning run with newsletters
+    - cron: '0 3 * * *'    # 7:00 PM PST (UTC-8) — evening run, news only
   workflow_dispatch:
+    inputs:
+      is_newsletter_run:
+        description: 'Send newsletters? (true/false)'
+        required: false
+        default: 'true'
 
 jobs:
-  build:
+  run_news:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -17,10 +23,10 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: |
-          pip install google-genai newsapi-python sendgrid firebase-admin anthropic
+        run: pip install google-genai newsapi-python sendgrid firebase-admin anthropic requests
 
-      - name: 1. Send standard email
+      - name: Fetch news, save to Firestore, send standard newsletter
+        working-directory: newsletter
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
@@ -28,14 +34,18 @@ jobs:
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
           RECIPIENT_EMAILS: ${{ secrets.RECIPIENT_EMAILS }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: python newsletter/main.py
-        
+          # Morning schedule or manual trigger = newsletter run; evening schedule = news-only
+          IS_NEWSLETTER_RUN: ${{ github.event.schedule == '0 3 * * *' && 'false' || 'true' }}
+        run: python main.py
 
-      - name: 2. Send Personalized Emails
+      - name: Send personalized emails (morning + manual runs only)
+        if: github.event.schedule != '0 3 * * *'
+        working-directory: newsletter
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: python newsletter/generate_news.py
+          IS_NEWSLETTER_RUN: 'true'
+        run: python generate_news.py
