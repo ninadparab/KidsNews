@@ -8,10 +8,10 @@
     "scheme": "dailywhiz",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.dailywhiz.kidsnews"
+      "bundleIdentifier": "com.safekidsnews.app"
     },
     "android": {
-      "package": "com.dailywhiz.kidsnews",
+      "package": "com.safekidsnews.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
