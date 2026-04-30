@@ -3,20 +3,19 @@ import time
 import json
 from datetime import datetime
 from newsapi import NewsApiClient
-from google import genai
+import anthropic
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import firebase_admin
 from firebase_admin import credentials, firestore
 
 # --- Clients ---
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL')
 IS_NEWSLETTER_RUN = os.environ.get('IS_NEWSLETTER_RUN', 'true').lower() == 'true'
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+client = anthropic.Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
 newsapi = NewsApiClient(api_key=NEWS_API_KEY)
 sg = SendGridAPIClient(api_key=SENDGRID_API_KEY)
 
@@ -131,11 +130,12 @@ def process_article_for_kids(article, age_group):
     )
 
     try:
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt
+        response = client.messages.create(
+            model="claude-haiku-4-5",
+            max_tokens=512,
+            messages=[{"role": "user", "content": prompt}],
         )
-        return response.text
+        return response.content[0].text
     except Exception as e:
         return f"STATUS: ERROR ({str(e)})"
 
