@@ -5,7 +5,7 @@ from datetime import datetime
 from newsapi import NewsApiClient
 import anthropic
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+from sendgrid.helpers.mail import Mail, Email
 import firebase_admin
 from firebase_admin import credentials, firestore
 
@@ -243,7 +243,7 @@ def send_personalized_email(email, articles_data, date_str, age_group, topics):
     plain_body = build_plain_text_email(articles_data, date_str, age_group, topics)
 
     message = Mail(
-        from_email=SENDER_EMAIL,
+        from_email=Email(SENDER_EMAIL, "Safe Kids News"),
         to_emails=email,
         subject=f"🌟 Your Daily Whiz — {date_str}",
         plain_text_content=plain_body,

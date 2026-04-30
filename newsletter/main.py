@@ -5,7 +5,7 @@ from datetime import datetime
 from newsapi import NewsApiClient
 import anthropic
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, HtmlContent, Content
+from sendgrid.helpers.mail import Mail, EMail, HtmlContent, Content
 import firebase_admin
 from firebase_admin import credentials, firestore
 import json
@@ -298,7 +298,7 @@ def send_newsletter(articles_data, from_email_address, to_email_addresses, date_
     plain_body = build_plain_text_email(articles_data, date_str)
 
     message = Mail(
-        from_email=from_email_address,
+        from_email=Email(from_email_address, "Safe Kids News"),
         to_emails=recipient_list,
         subject=f"🌞 The Daily Whiz — {date_str}",
         plain_text_content=plain_body,
