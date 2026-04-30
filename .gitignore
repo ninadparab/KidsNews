@@ -17,6 +17,9 @@ Thumbs.db
 # --- Jupyter Notebooks ---
 .ipynb_checkpoints/
 
+# --- Firebase CLI cache ---
+.firebase/
+
 # --- Project Specifics ---
 # In case you ever test with a local database again
 *_db/
