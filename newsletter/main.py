@@ -257,6 +257,8 @@ def build_html_email(articles_data, date_str):
         <a href="https://safekidsnews.com" style="color:#FFE66D;font-size:13px;font-weight:600;text-decoration:none;margin:0 10px;">Read online</a>
         <span style="color:rgba(255,255,255,0.3);">·</span>
         <a href="https://safekidsnews.com/signup.html" style="color:rgba(255,255,255,0.6);font-size:13px;text-decoration:none;margin:0 10px;">Update preferences</a>
+        <span style="color:rgba(255,255,255,0.3);">·</span>
+        <a href="https://safekidsnews.com/unsubscribe.html" style="color:rgba(255,255,255,0.6);font-size:13px;text-decoration:none;margin:0 10px;">Unsubscribe</a>
       </div>
       <div style="color:rgba(255,255,255,0.3);font-size:11px;">© 2025 The Daily Whiz · safekidsnews.com</div>
       <div style="color:rgba(255,255,255,0.2);font-size:11px;margin-top:4px;">You're receiving this because you subscribed at safekidsnews.com</div>
@@ -282,8 +284,10 @@ def build_plain_text_email(articles_data, date_str):
         lines.append("-" * 30)
     lines += [
         "",
+        "=" * 50,
         "Read more at: https://safekidsnews.com",
-        "Update preferences: https://safekidsnews.com/signup.html",
+        "To unsubscribe visit: https://safekidsnews.com/unsubscribe.html",
+        "To update preferences visit: https://safekidsnews.com/signup.html",
     ]
     return "\n".join(lines)
 
