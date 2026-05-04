@@ -1,0 +1,53 @@
+{
+  "unsafe_keywords": [
+    "war", "killed", "attack", "terrorist", "violence",
+    "missile", "explosion", "dead", "conflict", "bomb",
+    "murder", "shooting", "protest", "arrested", "scandal"
+  ],
+
+  "topic_keywords": {
+    "Science": ["science", "research", "study", "discovery", "experiment", "biology", "chemistry", "physics", "scientist", "lab"],
+    "Space": ["space", "nasa", "planet", "asteroid", "rocket", "moon", "mars", "galaxy", "astronaut", "satellite", "orbit", "telescope"],
+    "Animals": ["animal", "wildlife", "species", "elephant", "whale", "bird", "fish", "dog", "cat", "zoo", "nature", "mammal", "reptile", "insect", "penguin", "lion", "tiger"],
+    "Sports": ["sport", "soccer", "football", "basketball", "tennis", "olympic", "athlete", "championship", "game", "match", "tournament", "league", "player", "team", "coach", "stadium", "nfl", "nba", "fifa", "cricket", "rugby", "baseball", "golf", "swimming", "gymnastics"],
+    "Technology": ["technology", "tech", "robot", "ai", "computer", "app", "software", "internet", "digital", "coding", "smartphone", "electric", "battery", "innovation", "startup", "silicon"],
+    "Weather": ["weather", "climate", "storm", "hurricane", "rain", "snow", "temperature", "flood", "drought", "tornado", "lightning", "forecast", "sunny", "cloudy", "wind"],
+    "Arts": ["art", "music", "painting", "film", "movie", "book", "dance", "theater", "creative", "museum", "concert", "song", "artist", "exhibition", "photography", "sculpture"],
+    "Environment": ["environment", "ocean", "forest", "pollution", "recycle", "renewable", "green", "earth", "ecosystem", "sustainability", "wildlife", "conservation", "carbon"]
+  },
+
+  "topic_priority": [
+    "Space", "Animals", "Sports", "Weather", "Arts", "Environment", "Technology", "Science"
+  ],
+
+  "topic_colors": {
+    "Science": "#4ECDC4",
+    "Space": "#9B5DE5",
+    "Animals": "#00B4D8",
+    "Sports": "#FF6B35",
+    "Technology": "#06D6A0",
+    "Weather": "#118AB2",
+    "Arts": "#EF476F",
+    "Environment": "#57CC99"
+  },
+
+  "topic_emojis": {
+    "Science": "🔬",
+    "Space": "🚀",
+    "Animals": "🦁",
+    "Sports": "⚽",
+    "Technology": "💻",
+    "Weather": "🌤️",
+    "Arts": "🎨",
+    "Environment": "🌿"
+  },
+
+  "newsletter": {
+    "article_count": 20,
+    "sleep_between_articles": 10,
+    "age_group_default": "8-10",
+    "website_url": "https://safekidsnews.com",
+    "unsubscribe_url": "https://safekidsnews.com/unsubscribe.html",
+    "signup_url": "https://safekidsnews.com/signup.html"
+  }
+}
