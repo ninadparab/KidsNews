@@ -9,6 +9,15 @@ from sendgrid.helpers.mail import Mail, Email
 import firebase_admin
 from firebase_admin import credentials, firestore
 
+# --- Config ---
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')) as _f:
+    _cfg = json.load(_f)
+
+UNSAFE_KEYWORDS = _cfg['unsafe_keywords']
+VALID_TOPICS = set(_cfg['valid_topics'])
+TOPIC_COLORS = _cfg['topic_colors']
+TOPIC_KEYWORD_MAP = _cfg['topic_keywords']
+
 # --- Clients ---
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
@@ -33,38 +42,6 @@ def init_firebase():
 
 db = init_firebase()
 
-
-# --- Constants ---
-UNSAFE_KEYWORDS = [
-    "war", "killed", "attack", "terrorist", "violence",
-    "missile", "explosion", "dead", "conflict", "bomb",
-    "murder", "shooting", "protest", "arrested", "scandal"
-]
-
-VALID_TOPICS = {
-    "Science", "Space", "Animals", "Sports", "Technology",
-    "Weather", "Arts", "Environment", "Health", "History"
-}
-
-TOPIC_COLORS = {
-    "Science": "#4ECDC4", "Space": "#9B5DE5", "Animals": "#00B4D8",
-    "Sports": "#FF6B35", "Technology": "#06D6A0", "Weather": "#118AB2",
-    "Arts": "#EF476F", "Environment": "#57CC99", "Health": "#FF9F1C",
-    "History": "#A8956E",
-}
-
-TOPIC_KEYWORD_MAP = {
-    "Science":     ["science", "research", "study", "experiment", "discovery", "biology", "chemistry", "physics"],
-    "Space":       ["space", "nasa", "planet", "star", "galaxy", "rocket", "astronaut", "orbit", "moon", "solar"],
-    "Animals":     ["animal", "wildlife", "species", "mammal", "bird", "fish", "insect", "endangered", "zoo", "pet"],
-    "Sports":      ["sport", "football", "soccer", "basketball", "baseball", "tennis", "olympic", "athlete", "game"],
-    "Technology":  ["tech", "computer", "software", "ai", "robot", "internet", "app", "digital", "code", "cyber"],
-    "Weather":     ["weather", "climate", "storm", "rain", "snow", "hurricane", "tornado", "temperature"],
-    "Arts":        ["art", "music", "film", "movie", "book", "painting", "sculpture", "theater", "dance", "poetry"],
-    "Environment": ["environment", "nature", "forest", "ocean", "pollution", "recycle", "green", "carbon", "eco"],
-    "Health":      ["health", "medicine", "doctor", "hospital", "vaccine", "nutrition", "fitness", "disease"],
-    "History":     ["history", "ancient", "civilization", "museum", "archaeology", "historical", "century"],
-}
 
 
 # --- Topic detection ---
@@ -131,8 +108,8 @@ def process_article_for_kids(article, age_group):
 
     try:
         response = client.messages.create(
-            model="claude-haiku-4-5",
-            max_tokens=512,
+            model=_cfg['newsletter']['model'],
+            max_tokens=_cfg['newsletter']['max_tokens'],
             messages=[{"role": "user", "content": prompt}],
         )
         return response.content[0].text
@@ -312,7 +289,7 @@ if __name__ == "__main__":
             else:
                 print(f"  ⚠️ Article {i+1}: Unsafe")
 
-            time.sleep(10)
+            time.sleep(_cfg['newsletter']['sleep_between_articles'])
 
         if articles_data:
             send_personalized_email(email, articles_data, date_display, age_group, topics)

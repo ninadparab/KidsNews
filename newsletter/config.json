@@ -5,45 +5,72 @@
     "murder", "shooting", "protest", "arrested", "scandal"
   ],
 
+  "valid_topics": [
+    "Science", "Space", "Animals", "Sports", "Technology",
+    "Weather", "Arts", "Environment", "Health", "History"
+  ],
+
   "topic_keywords": {
-    "Science": ["science", "research", "study", "discovery", "experiment", "biology", "chemistry", "physics", "scientist", "lab"],
-    "Space": ["space", "nasa", "planet", "asteroid", "rocket", "moon", "mars", "galaxy", "astronaut", "satellite", "orbit", "telescope"],
-    "Animals": ["animal", "wildlife", "species", "elephant", "whale", "bird", "fish", "dog", "cat", "zoo", "nature", "mammal", "reptile", "insect", "penguin", "lion", "tiger"],
-    "Sports": ["sport", "soccer", "football", "basketball", "tennis", "olympic", "athlete", "championship", "game", "match", "tournament", "league", "player", "team", "coach", "stadium", "nfl", "nba", "fifa", "cricket", "rugby", "baseball", "golf", "swimming", "gymnastics"],
-    "Technology": ["technology", "tech", "robot", "ai", "computer", "app", "software", "internet", "digital", "coding", "smartphone", "electric", "battery", "innovation", "startup", "silicon"],
-    "Weather": ["weather", "climate", "storm", "hurricane", "rain", "snow", "temperature", "flood", "drought", "tornado", "lightning", "forecast", "sunny", "cloudy", "wind"],
-    "Arts": ["art", "music", "painting", "film", "movie", "book", "dance", "theater", "creative", "museum", "concert", "song", "artist", "exhibition", "photography", "sculpture"],
-    "Environment": ["environment", "ocean", "forest", "pollution", "recycle", "renewable", "green", "earth", "ecosystem", "sustainability", "wildlife", "conservation", "carbon"]
+    "Science":     ["science", "research", "study", "experiment", "discovery", "biology", "chemistry", "physics", "lab"],
+    "Space":       ["space", "nasa", "planet", "star", "galaxy", "rocket", "astronaut", "orbit", "moon", "solar"],
+    "Animals":     ["animal", "wildlife", "species", "mammal", "bird", "fish", "insect", "endangered", "zoo", "pet"],
+    "Sports":      ["sport", "football", "soccer", "basketball", "baseball", "tennis", "olympic", "athlete", "game", "championship"],
+    "Technology":  ["tech", "computer", "software", "ai", "robot", "internet", "app", "digital", "code", "cyber"],
+    "Weather":     ["weather", "climate", "storm", "rain", "snow", "hurricane", "tornado", "temperature", "forecast"],
+    "Arts":        ["art", "music", "film", "movie", "book", "painting", "sculpture", "theater", "dance", "poetry"],
+    "Environment": ["environment", "nature", "forest", "ocean", "pollution", "recycle", "green", "carbon", "eco"],
+    "Health":      ["health", "medicine", "doctor", "hospital", "vaccine", "nutrition", "fitness", "disease", "wellness"],
+    "History":     ["history", "ancient", "civilization", "museum", "archaeology", "historical", "century"]
   },
 
   "topic_priority": [
-    "Space", "Animals", "Sports", "Weather", "Arts", "Environment", "Technology", "Science"
+    "Space", "Animals", "Sports", "Weather", "Arts", "Environment", "Technology", "Science", "Health", "History"
   ],
 
   "topic_colors": {
-    "Science": "#4ECDC4",
-    "Space": "#9B5DE5",
-    "Animals": "#00B4D8",
-    "Sports": "#FF6B35",
-    "Technology": "#06D6A0",
-    "Weather": "#118AB2",
-    "Arts": "#EF476F",
-    "Environment": "#57CC99"
+    "Science":     "#4ECDC4",
+    "Space":       "#9B5DE5",
+    "Animals":     "#00B4D8",
+    "Sports":      "#FF6B35",
+    "Technology":  "#06D6A0",
+    "Weather":     "#118AB2",
+    "Arts":        "#EF476F",
+    "Environment": "#57CC99",
+    "Health":      "#FF9F1C",
+    "History":     "#A8956E"
   },
 
   "topic_emojis": {
-    "Science": "🔬",
-    "Space": "🚀",
-    "Animals": "🦁",
-    "Sports": "⚽",
-    "Technology": "💻",
-    "Weather": "🌤️",
-    "Arts": "🎨",
-    "Environment": "🌿"
+    "Science":     "🔬",
+    "Space":       "🚀",
+    "Animals":     "🦁",
+    "Sports":      "⚽",
+    "Technology":  "💻",
+    "Weather":     "🌤️",
+    "Arts":        "🎨",
+    "Environment": "🌿",
+    "Health":      "🏥",
+    "History":     "🏛️"
+  },
+
+  "topic_fallback_images": {
+    "Science":     "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Science_laboratory.jpg/640px-Science_laboratory.jpg",
+    "Space":       "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/640px-The_Earth_seen_from_Apollo_17.jpg",
+    "Animals":     "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/640px-Cat03.jpg",
+    "Sports":      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Mapplebrook_football_ground.jpg/640px-Mapplebrook_football_ground.jpg",
+    "Technology":  "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Circuit_board_for_Raspberry_Pi.jpg/640px-Circuit_board_for_Raspberry_Pi.jpg",
+    "Weather":     "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Cirrus_clouds2.jpg/640px-Cirrus_clouds2.jpg",
+    "Arts":        "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/402px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg",
+    "Environment": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Sunflower_from_Silesia2.jpg/640px-Sunflower_from_Silesia2.jpg",
+    "Health":      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Healthy_Food.jpg/640px-Healthy_Food.jpg",
+    "History":     "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/640px-Colosseo_2020.jpg"
   },
 
   "newsletter": {
+    "model": "claude-haiku-4-5",
+    "max_tokens": 512,
     "article_count": 20,
+    "fetch_count": 25,
     "sleep_between_articles": 10,
     "age_group_default": "8-10",
     "website_url": "https://safekidsnews.com",

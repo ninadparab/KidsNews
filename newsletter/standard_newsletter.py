@@ -10,6 +10,11 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import json
 
+# --- Config ---
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')) as _f:
+    _cfg = json.load(_f)
+
+UNSAFE_KEYWORDS = _cfg['unsafe_keywords']
 
 # --- 1. SETTING UP CLIENTS USING ENV VARS (Hidden from Public) ---
 # This replaces userdata.get()
@@ -50,12 +55,6 @@ def save_article(kid_title, kid_summary, did_you_know, topics, country, language
 
 # --- 2. YOUR ORIGINAL FUNCTIONS (Kept as is) ---
 
-UNSAFE_KEYWORDS = [
-    "war", "killed", "attack", "terrorist", "violence",
-    "missile", "explosion", "dead", "conflict", "bomb",
-    "murder", "shooting", "protest", "arrested", "scandal"
-]
-
 def fetch_raw_news(sources=None, count=25):
     try:
         params = {'language': 'en', 'page_size': count}
@@ -94,8 +93,8 @@ def process_article_for_kids(article, age_group="8-10 years old"):
     """
     try:
         response = client.messages.create(
-            model="claude-haiku-4-5",
-            max_tokens=512,
+            model=_cfg['newsletter']['model'],
+            max_tokens=_cfg['newsletter']['max_tokens'],
             messages=[{"role": "user", "content": prompt}],
         )
         return response.content[0].text
@@ -149,7 +148,7 @@ if __name__ == "__main__":
     today_str = datetime.now().strftime("%Y-%m-%d")
     processed_stories = []
 
-    raw_articles = fetch_raw_news(count=25)
+    raw_articles = fetch_raw_news(count=_cfg['newsletter']['fetch_count'])
     print(f"--- 🛡️ Starting Safety Pipeline [{today_str}] ---")
 
     for i, art in enumerate(raw_articles):
@@ -179,8 +178,7 @@ if __name__ == "__main__":
         else:
             print(f"⚠️ Article {i+1}: Flagged as unsafe by AI.")
 
-        # Keep your sleep timer to stay within Free Tier limits
-        time.sleep(10)
+        time.sleep(_cfg['newsletter']['sleep_between_articles'])
 
     final_edition = generate_newsletter(processed_stories)
 

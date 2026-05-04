@@ -11,6 +11,16 @@ from firebase_admin import credentials, firestore
 import json
 import requests as http_requests
 
+# --- Config ---
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')) as _f:
+    _cfg = json.load(_f)
+
+UNSAFE_KEYWORDS = _cfg['unsafe_keywords']
+VALID_TOPICS = set(_cfg['valid_topics'])
+TOPIC_COLORS = _cfg['topic_colors']
+TOPIC_KEYWORD_MAP = _cfg['topic_keywords']
+TOPIC_FALLBACK_IMAGES = _cfg['topic_fallback_images']
+
 # --- Clients ---
 NEWS_API_KEY = os.environ.get('NEWS_API_KEY')
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
@@ -33,51 +43,6 @@ def init_firebase():
 
 db = init_firebase()
 
-
-# --- Constants ---
-UNSAFE_KEYWORDS = [
-    "war", "killed", "attack", "terrorist", "violence",
-    "missile", "explosion", "dead", "conflict", "bomb",
-    "murder", "shooting", "protest", "arrested", "scandal"
-]
-
-VALID_TOPICS = {
-    "Science", "Space", "Animals", "Sports", "Technology",
-    "Weather", "Arts", "Environment", "Health", "History"
-}
-
-TOPIC_COLORS = {
-    "Science": "#4ECDC4", "Space": "#9B5DE5", "Animals": "#00B4D8",
-    "Sports": "#FF6B35", "Technology": "#06D6A0", "Weather": "#118AB2",
-    "Arts": "#EF476F", "Environment": "#57CC99", "Health": "#FF9F1C",
-    "History": "#A8956E",
-}
-
-TOPIC_KEYWORD_MAP = {
-    "Science":     ["science", "research", "study", "experiment", "discovery", "biology", "chemistry", "physics", "lab"],
-    "Space":       ["space", "nasa", "planet", "star", "galaxy", "rocket", "astronaut", "orbit", "moon", "solar"],
-    "Animals":     ["animal", "wildlife", "species", "mammal", "bird", "fish", "insect", "endangered", "zoo", "pet"],
-    "Sports":      ["sport", "football", "soccer", "basketball", "baseball", "tennis", "olympic", "athlete", "game", "championship"],
-    "Technology":  ["tech", "computer", "software", "ai", "robot", "internet", "app", "digital", "code", "cyber"],
-    "Weather":     ["weather", "climate", "storm", "rain", "snow", "hurricane", "tornado", "temperature", "forecast"],
-    "Arts":        ["art", "music", "film", "movie", "book", "painting", "sculpture", "theater", "dance", "poetry"],
-    "Environment": ["environment", "nature", "forest", "ocean", "pollution", "recycle", "green", "carbon", "eco"],
-    "Health":      ["health", "medicine", "doctor", "hospital", "vaccine", "nutrition", "fitness", "disease", "wellness"],
-    "History":     ["history", "ancient", "war", "civilization", "museum", "archaeology", "historical", "century"],
-}
-
-TOPIC_FALLBACK_IMAGES = {
-    "Science":     "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Science_laboratory.jpg/640px-Science_laboratory.jpg",
-    "Space":       "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/640px-The_Earth_seen_from_Apollo_17.jpg",
-    "Animals":     "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/640px-Cat03.jpg",
-    "Sports":      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Mapplebrook_football_ground.jpg/640px-Mapplebrook_football_ground.jpg",
-    "Technology":  "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Circuit_board_for_Raspberry_Pi.jpg/640px-Circuit_board_for_Raspberry_Pi.jpg",
-    "Weather":     "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Cirrus_clouds2.jpg/640px-Cirrus_clouds2.jpg",
-    "Arts":        "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/402px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg",
-    "Environment": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Sunflower_from_Silesia2.jpg/640px-Sunflower_from_Silesia2.jpg",
-    "Health":      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Healthy_Food.jpg/640px-Healthy_Food.jpg",
-    "History":     "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/640px-Colosseo_2020.jpg",
-}
 
 
 # --- Image helpers ---
@@ -166,8 +131,8 @@ TASK:
 
     try:
         response = client.messages.create(
-            model="claude-haiku-4-5",
-            max_tokens=512,
+            model=_cfg['newsletter']['model'],
+            max_tokens=_cfg['newsletter']['max_tokens'],
             messages=[{"role": "user", "content": prompt}],
         )
         return response.content[0].text
@@ -320,7 +285,7 @@ if __name__ == "__main__":
 
     print(f"--- 🛡️ Starting {'Morning (newsletter)' if IS_NEWSLETTER_RUN else 'Evening (news-only)'} Pipeline [{today_str}] ---")
 
-    raw_articles = fetch_raw_news(count=25)
+    raw_articles = fetch_raw_news(count=_cfg['newsletter']['fetch_count'])
 
     for i, art in enumerate(raw_articles):
         article_url = art.get('url', '')
@@ -387,7 +352,7 @@ if __name__ == "__main__":
         else:
             print(f"⚠️  Article {i+1}: Flagged unsafe by AI.")
 
-        time.sleep(10)
+        time.sleep(_cfg['newsletter']['sleep_between_articles'])
 
     if IS_NEWSLETTER_RUN:
         if articles_for_email:
