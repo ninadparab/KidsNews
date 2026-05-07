@@ -8,8 +8,6 @@ on:
 jobs:
   run_agent:
     runs-on: ubuntu-latest
-    # Only run on the agent-approach branch (scheduled runs always use default branch,
-    # so workflow_dispatch is the primary way to test from this branch)
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -22,16 +20,16 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install anthropic firebase-admin sendgrid feedparser requests python-dotenv
+        run: pip install anthropic sendgrid feedparser requests python-dotenv
 
       - name: Run agent pipeline
         working-directory: newsletter
         env:
-          ANTHROPIC_API_KEY:       ${{ secrets.ANTHROPIC_API_KEY }}
-          NEWS_API_KEY:            ${{ secrets.NEWS_API_KEY }}
-          SENDGRID_API_KEY:        ${{ secrets.SENDGRID_API_KEY }}
-          SENDER_EMAIL:            ${{ secrets.SENDER_EMAIL }}
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          GUARDIAN_API_KEY:        ${{ secrets.GUARDIAN_API_KEY }}
-          GNEWS_API_KEY:           ${{ secrets.GNEWS_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          NEWS_API_KEY:      ${{ secrets.NEWS_API_KEY }}
+          SENDGRID_API_KEY:  ${{ secrets.SENDGRID_API_KEY }}
+          SENDER_EMAIL:      ${{ secrets.SENDER_EMAIL }}
+          RECIPIENT_EMAILS:  ${{ secrets.RECIPIENT_EMAILS }}
+          GUARDIAN_API_KEY:  ${{ secrets.GUARDIAN_API_KEY }}
+          GNEWS_API_KEY:     ${{ secrets.GNEWS_API_KEY }}
         run: python kidsnews_agent.py
