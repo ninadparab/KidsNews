@@ -1,6 +1,6 @@
 """
-KidsNews Agent Pipeline — Multi-Source Edition
-Claude orchestrates across 5 news sources and decides which to use per subscriber.
+KidsNews Agent Pipeline — Non-Personalized Edition
+Claude picks the 10 best articles across 5 sources and sends one newsletter to all recipients.
 
 Sources:
   - NewsAPI        (existing, requires NEWSAPI_KEY)
@@ -9,7 +9,7 @@ Sources:
   - GNews          (free tier 100 req/day — https://gnews.io)
   - Wikipedia      (completely free, no key)
 
-pip install anthropic firebase-admin sendgrid feedparser requests
+pip install anthropic firebase-admin sendgrid feedparser requests python-dotenv
 """
 
 import json
@@ -32,6 +32,7 @@ NEWS_API_KEY     = os.environ.get("NEWS_API_KEY", "")
 GUARDIAN_API_KEY = os.environ.get("GUARDIAN_API_KEY", "")
 GNEWS_API_KEY    = os.environ.get("GNEWS_API_KEY", "")
 SENDER_EMAIL     = os.environ.get("SENDER_EMAIL", "news@safekidsnews.com")
+RECIPIENT_EMAILS = [e.strip() for e in os.environ.get("RECIPIENT_EMAILS", "").split(",") if e.strip()]
 
 # ── Init ──────────────────────────────────────────────────────────────────────
 _firebase_sa = os.environ.get("FIREBASE_SERVICE_ACCOUNT")
@@ -266,29 +267,32 @@ def get_subscribers() -> dict:
     return {"subscribers": subscribers, "count": len(subscribers)}
 
 
-def send_newsletter(subscriber_email: str, articles: list, child_name: str) -> dict:
-    """Send the finished newsletter via SendGrid."""
+def send_newsletter(articles: list) -> dict:
+    """Send the finished newsletter to all recipients in RECIPIENT_EMAILS via SendGrid."""
+    if not RECIPIENT_EMAILS:
+        return {"sent": False, "error": "RECIPIENT_EMAILS env var is empty or not set."}
+
     html = f"""
     <div style="font-family:sans-serif; max-width:600px; margin:auto;">
-      <h2 style="color:#2563EB;">Hello {child_name}! Here's your news today 🌟</h2>
+      <h2 style="color:#2563EB;">Hello! Here's your kids news for {datetime.now().strftime('%B %d')} 🌟</h2>
     """
     for a in articles:
         html += f"""
       <div style="margin-bottom:24px; padding:16px; border-left:4px solid #3B82F6;
                   background:#F0F9FF; border-radius:8px;">
-        <p style="font-size:17px; margin:0 0 8px;">{a.get('emoji','')} {a.get('rewritten','')}</p>
+        <p style="font-size:17px; margin:0 0 8px;">{a.get('emoji', '')} {a.get('rewritten', '')}</p>
         {"<p style='font-size:14px; color:#6B7280; margin:0;'><em>💡 Fun fact: " + a['fun_fact'] + "</em></p>" if a.get('fun_fact') else ""}
       </div>"""
     html += "</div>"
 
     msg = Mail(
         from_email=SENDER_EMAIL,
-        to_emails=subscriber_email,
-        subject=f"🌟 Your Safe Kids News — {datetime.now().strftime('%B %d')}!",
+        to_emails=RECIPIENT_EMAILS,
+        subject=f"🌟 Kids News — {datetime.now().strftime('%B %d')}!",
         html_content=html,
     )
     sg.send(msg)
-    return {"sent": True, "to": subscriber_email, "article_count": len(articles)}
+    return {"sent": True, "to": RECIPIENT_EMAILS, "article_count": len(articles)}
 
 
 # ── Tool registry ─────────────────────────────────────────────────────────────
@@ -405,25 +409,20 @@ TOOLS = [
         },
     },
     {
-        "name": "get_subscribers",
-        "description": (
-            "Fetch all active newsletter subscribers with preferences "
-            "(topics, age, country) from Firestore. Always call this first."
-        ),
-        "input_schema": {"type": "object", "properties": {}},
-    },
-    {
         "name": "send_newsletter",
-        "description": "Send the finished personalized newsletter to one subscriber via SendGrid.",
+        "description": (
+            "Send the finished newsletter to all recipients. "
+            "Call exactly once at the end with all 10 rewritten articles."
+        ),
         "input_schema": {
             "type": "object",
             "properties": {
-                "subscriber_email": {"type": "string"},
-                "articles":         {"type": "array",
-                                     "description": "List of rewritten article objects"},
-                "child_name":       {"type": "string"},
+                "articles": {
+                    "type": "array",
+                    "description": "List of exactly 10 rewritten article objects (rewritten, fun_fact, emoji)",
+                },
             },
-            "required": ["subscriber_email", "articles", "child_name"],
+            "required": ["articles"],
         },
     },
 ]
@@ -431,36 +430,27 @@ TOOLS = [
 
 # ── System prompt ─────────────────────────────────────────────────────────────
 
-SYSTEM_PROMPT = f"""You are the KidsNews agent. Your job: send personalized, safe,
-age-appropriate news newsletters to children aged 6-12.
+SYSTEM_PROMPT = f"""You are the KidsNews agent. Your job: curate and send one daily newsletter
+with the 10 best news articles for children aged 6-12.
 
-You have FIVE news sources. Choose the best combination per subscriber:
-
-  fetch_newsapi                 → country-specific breaking news
+You have FIVE news sources:
+  fetch_newsapi                 → breaking news (use topics like science, space, animals, sports)
   fetch_rss                     → free reliable feeds (NASA, BBC, Reuters, AP, Smithsonian…)
   fetch_guardian                → high-quality science, environment, sport
-  fetch_gnews                   → international + non-English countries
-  fetch_wikipedia_current_events → free educational "on this day" facts (always safe)
+  fetch_gnews                   → international coverage
+  fetch_wikipedia_current_events → free "on this day" facts (always safe, always include 1)
 
-SOURCE SELECTION STRATEGY:
-  Space topics       → nasa + space_com RSS first, then Guardian science
-  Animal topics      → bbc_nature + nat_geo_kids RSS
-  Science topics     → bbc_science + Guardian science + sciencedaily RSS
-  Sports topics      → bbc_sport + ap_sports; for cricket/local sport use GNews
-  Non-US subscriber  → GNews with their country code for local relevance
-  Any newsletter     → always add 1 Wikipedia event as an educational bonus
+PIPELINE:
+1. Fetch broadly from 3-4 different sources to collect a wide pool of articles.
+   Aim for variety: science, space, animals, sports, technology, environment.
+2. Run check_safety on every article — skip any that fail.
+3. From the safe pool, select the 10 most engaging and educational stories for kids 6-12.
+   Prefer: discoveries, animals, space, achievements, nature, fun science, sports.
+   Always include 1 Wikipedia "on this day" event.
+4. Rewrite all 10 using rewrite_for_kids with age_group=9 (the midpoint of 6-12).
+5. Call send_newsletter exactly once with all 10 rewritten articles.
 
-PIPELINE PER SUBSCRIBER:
-1. Fetch from 2-3 relevant sources (mix for variety, not just one)
-2. check_safety on every article before using it — skip unsafe ones
-3. rewrite_for_kids for each safe article — match age_group exactly
-4. Send 3-5 rewritten articles + 1 Wikipedia event via send_newsletter
-5. If fewer than 3 safe articles found, try another source before giving up
-
-EFFICIENCY:
-- Cache fetched+filtered articles across subscribers sharing the same topics + country
-- Rewrite separately per age group (a 7-year-old and 11-year-old need different language)
-
+If a source returns an error or too few articles, try a different one.
 Log which sources you used and how many safe articles each yielded."""
 
 
@@ -474,9 +464,10 @@ def run_kidsnews_agent():
         {
             "role": "user",
             "content": (
-                "Run today's personalized newsletter pipeline. "
-                "Get all subscribers, pick the best news sources per their preferences, "
-                "filter for safety, rewrite for each child's age, and send."
+                "Run today's newsletter pipeline. "
+                "Fetch articles from multiple sources, filter for safety, "
+                "pick the 10 best for kids aged 6-12, rewrite them at age 9 level, "
+                "and send the newsletter."
             ),
         }
     ]
@@ -530,7 +521,6 @@ DISPATCH = {
     "fetch_wikipedia_current_events": fetch_wikipedia_current_events,
     "check_safety":                   check_safety,
     "rewrite_for_kids":               rewrite_for_kids,
-    "get_subscribers":                get_subscribers,
     "send_newsletter":                send_newsletter,
 }
 
