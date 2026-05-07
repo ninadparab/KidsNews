@@ -13,23 +13,42 @@ pip install anthropic firebase-admin sendgrid feedparser requests
 """
 
 import json
+import os
 import feedparser
 import requests
 import anthropic
 from datetime import datetime
+from dotenv import load_dotenv
 
 import firebase_admin
 from firebase_admin import credentials, firestore
 from sendgrid import SendGridAPIClient
-from sendgrid.helper.mail import Mail
+from sendgrid.helpers.mail import Mail
+
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+
+# ── API keys ──────────────────────────────────────────────────────────────────
+NEWS_API_KEY     = os.environ.get("NEWS_API_KEY", "")
+GUARDIAN_API_KEY = os.environ.get("GUARDIAN_API_KEY", "")
+GNEWS_API_KEY    = os.environ.get("GNEWS_API_KEY", "")
+SENDER_EMAIL     = os.environ.get("SENDER_EMAIL", "news@safekidsnews.com")
 
 # ── Init ──────────────────────────────────────────────────────────────────────
-cred = credentials.Certificate("serviceAccountKey.json")
+_firebase_sa = os.environ.get("FIREBASE_SERVICE_ACCOUNT")
+if _firebase_sa:
+    cred = credentials.Certificate(json.loads(_firebase_sa))
+elif os.path.exists("serviceAccountKey.json"):
+    cred = credentials.Certificate("serviceAccountKey.json")
+else:
+    raise FileNotFoundError(
+        "Firebase credentials not found. Set FIREBASE_SERVICE_ACCOUNT env var "
+        "or place serviceAccountKey.json in the working directory."
+    )
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-anthropic_client = anthropic.Anthropic()   # ANTHROPIC_API_KEY from env
-sg = SendGridAPIClient()                    # SENDGRID_API_KEY from env
+anthropic_client = anthropic.Anthropic()
+sg = SendGridAPIClient()
 
 
 
@@ -263,7 +282,7 @@ def send_newsletter(subscriber_email: str, articles: list, child_name: str) -> d
     html += "</div>"
 
     msg = Mail(
-        from_email="news@safekidsnews.com",
+        from_email=SENDER_EMAIL,
         to_emails=subscriber_email,
         subject=f"🌟 Your Safe Kids News — {datetime.now().strftime('%B %d')}!",
         html_content=html,
@@ -463,7 +482,8 @@ def run_kidsnews_agent():
     ]
 
     loop_count = 0
-    while True:
+    max_loops = 50
+    while loop_count < max_loops:
         loop_count += 1
         response = anthropic_client.messages.create(
             model="claude-haiku-4-5-20251001",

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(& \"C:\\\\Users\\\\samik\\\\.local\\\\bin\\\\python3.14.exe\" -m pip install feedparser)",
+      "PowerShell(Get-Command uv -ErrorAction SilentlyContinue)"
+    ]
+  }
+}

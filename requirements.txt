@@ -3,3 +3,5 @@ newsapi-python
 sendgrid
 firebase-admin
 feedparser
+python-dotenv
+requests
