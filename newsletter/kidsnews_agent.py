@@ -20,8 +20,6 @@ import anthropic
 from datetime import datetime
 from dotenv import load_dotenv
 
-import firebase_admin
-from firebase_admin import credentials, firestore
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
@@ -33,20 +31,6 @@ GUARDIAN_API_KEY = os.environ.get("GUARDIAN_API_KEY", "")
 GNEWS_API_KEY    = os.environ.get("GNEWS_API_KEY", "")
 SENDER_EMAIL     = os.environ.get("SENDER_EMAIL", "news@safekidsnews.com")
 RECIPIENT_EMAILS = [e.strip() for e in os.environ.get("RECIPIENT_EMAILS", "").split(",") if e.strip()]
-
-# ── Init ──────────────────────────────────────────────────────────────────────
-_firebase_sa = os.environ.get("FIREBASE_SERVICE_ACCOUNT")
-if _firebase_sa:
-    cred = credentials.Certificate(json.loads(_firebase_sa))
-elif os.path.exists("serviceAccountKey.json"):
-    cred = credentials.Certificate("serviceAccountKey.json")
-else:
-    raise FileNotFoundError(
-        "Firebase credentials not found. Set FIREBASE_SERVICE_ACCOUNT env var "
-        "or place serviceAccountKey.json in the working directory."
-    )
-firebase_admin.initialize_app(cred)
-db = firestore.client()
 
 anthropic_client = anthropic.Anthropic()
 sg = SendGridAPIClient()
@@ -250,21 +234,6 @@ Respond ONLY with valid JSON, no markdown:
     except json.JSONDecodeError:
         return {"rewritten": raw, "fun_fact": "", "emoji": "📰"}
 
-
-def get_subscribers() -> dict:
-    """Fetch active subscribers and their preferences from Firestore."""
-    subscribers = []
-    docs = db.collection("subscribers").where("active", "==", True).stream()
-    for doc in docs:
-        d = doc.to_dict()
-        subscribers.append({
-            "email":   d.get("email"),
-            "name":    d.get("child_name", "Friend"),
-            "age":     d.get("age", 8),
-            "topics":  d.get("topics", ["science", "animals", "sports"]),
-            "country": d.get("country", "us"),
-        })
-    return {"subscribers": subscribers, "count": len(subscribers)}
 
 
 def send_newsletter(articles: list) -> dict:
