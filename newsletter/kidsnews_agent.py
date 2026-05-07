@@ -241,23 +241,96 @@ def send_newsletter(articles: list) -> dict:
     if not RECIPIENT_EMAILS:
         return {"sent": False, "error": "RECIPIENT_EMAILS env var is empty or not set."}
 
-    html = f"""
-    <div style="font-family:sans-serif; max-width:600px; margin:auto;">
-      <h2 style="color:#2563EB;">Hello! Here's your kids news for {datetime.now().strftime('%B %d')} 🌟</h2>
-    """
+    today = datetime.now().strftime("%B %d, %Y")
+
+    articles_html = ""
     for a in articles:
-        html += f"""
-      <div style="margin-bottom:24px; padding:16px; border-left:4px solid #3B82F6;
-                  background:#F0F9FF; border-radius:8px;">
-        <p style="font-size:17px; margin:0 0 8px;">{a.get('emoji', '')} {a.get('rewritten', '')}</p>
-        {"<p style='font-size:14px; color:#6B7280; margin:0;'><em>💡 Fun fact: " + a['fun_fact'] + "</em></p>" if a.get('fun_fact') else ""}
-      </div>"""
-    html += "</div>"
+        emoji    = a.get("emoji", "📰")
+        category = a.get("category", "News")
+        rewritten = a.get("rewritten", "")
+        fun_fact  = a.get("fun_fact", "")
+        url       = a.get("url", "")
+
+        fun_fact_html = ""
+        if fun_fact:
+            fun_fact_html = f"""
+            <div style="background:#FFFBEB;border-left:3px solid #F59E0B;padding:10px 14px;
+                        border-radius:0 6px 6px 0;margin-bottom:14px;">
+              <p style="color:#92400E;font-size:14px;margin:0;">
+                💡 <strong>Fun fact:</strong> {fun_fact}
+              </p>
+            </div>"""
+
+        read_more_html = ""
+        if url:
+            read_more_html = f"""
+            <a href="{url}" style="color:#3B82F6;font-size:14px;font-weight:600;text-decoration:none;">
+              Read original article &rarr;
+            </a>"""
+
+        articles_html += f"""
+        <div style="margin-bottom:20px;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden;">
+          <div style="background:#EFF6FF;padding:10px 16px;border-bottom:1px solid #E2E8F0;">
+            <span style="font-size:18px;">{emoji}</span>
+            <span style="color:#3B82F6;font-weight:600;font-size:13px;margin-left:6px;
+                         text-transform:uppercase;letter-spacing:0.5px;">{category}</span>
+          </div>
+          <div style="padding:16px;">
+            <p style="color:#1E293B;font-size:16px;line-height:1.6;margin:0 0 12px;">{rewritten}</p>
+            {fun_fact_html}
+            {read_more_html}
+          </div>
+        </div>"""
+
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <body style="margin:0;padding:0;background-color:#F8FAFC;">
+      <div style="max-width:600px;margin:0 auto;padding:20px 0;
+                  font-family:'Helvetica Neue',Arial,sans-serif;">
+
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#1E40AF 0%,#3B82F6 100%);
+                    padding:32px 24px;text-align:center;border-radius:16px 16px 0 0;">
+          <div style="font-size:44px;margin-bottom:8px;">🌟</div>
+          <h1 style="color:#ffffff;margin:0;font-size:28px;font-weight:700;letter-spacing:-0.5px;">
+            The Daily Whiz
+          </h1>
+          <p style="color:#BFDBFE;margin:6px 0 0;font-size:14px;">
+            Safe, AI-filtered news for curious kids
+          </p>
+          <p style="color:#93C5FD;margin:10px 0 0;font-size:13px;">{today}</p>
+        </div>
+
+        <!-- Body -->
+        <div style="background:#ffffff;padding:24px;">
+          {articles_html}
+        </div>
+
+        <!-- Footer -->
+        <div style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:24px;
+                    text-align:center;border-radius:0 0 16px 16px;">
+          <p style="color:#64748B;font-size:13px;margin:0 0 4px;">
+            🌟 <strong>The Daily Whiz</strong>
+          </p>
+          <p style="color:#94A3B8;font-size:12px;margin:0 0 8px;">
+            Safe news for kids, trusted by parents
+          </p>
+          <p style="color:#CBD5E1;font-size:11px;margin:0;">
+            &copy; 2025 The Daily Whiz &middot;
+            <a href="https://www.safekidsnews.com"
+               style="color:#94A3B8;text-decoration:none;">safekidsnews.com</a>
+          </p>
+        </div>
+
+      </div>
+    </body>
+    </html>"""
 
     msg = Mail(
         from_email=SENDER_EMAIL,
         to_emails=RECIPIENT_EMAILS,
-        subject=f"🌟 Kids News — {datetime.now().strftime('%B %d')}!",
+        subject=f"🌟 The Daily Whiz — {datetime.now().strftime('%B %d')}",
         html_content=html,
     )
     sg.send(msg)
@@ -388,7 +461,12 @@ TOOLS = [
             "properties": {
                 "articles": {
                     "type": "array",
-                    "description": "List of exactly 10 rewritten article objects (rewritten, fun_fact, emoji)",
+                    "description": (
+                        "List of exactly 10 article objects. Each must have: "
+                        "rewritten (string), fun_fact (string), emoji (string), "
+                        "url (string — the original article URL from the news source), "
+                        "category (string — e.g. Science, Space, Animals, Sports, Environment, Technology, World, History)"
+                    ),
                 },
             },
             "required": ["articles"],
@@ -417,7 +495,11 @@ PIPELINE:
    Prefer: discoveries, animals, space, achievements, nature, fun science, sports.
    Always include 1 Wikipedia "on this day" event.
 4. Rewrite all 10 using rewrite_for_kids with age_group=9 (the midpoint of 6-12).
-5. Call send_newsletter exactly once with all 10 rewritten articles.
+5. Build the final articles list. Each article object MUST include:
+   - rewritten, fun_fact, emoji  (from rewrite_for_kids output)
+   - url                         (the original article URL from the fetch step — keep track of it)
+   - category                    (one of: Science, Space, Animals, Sports, Environment, Technology, World, History)
+6. Call send_newsletter exactly once with all 10 articles.
 
 If a source returns an error or too few articles, try a different one.
 Log which sources you used and how many safe articles each yielded."""
