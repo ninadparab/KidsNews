@@ -75,7 +75,7 @@
       <div class="emoji">👋</div>
       <h2>You've been unsubscribed</h2>
       <p>
-        We've removed your email from The Daily Whiz newsletter. 
+        We've marked your email as unsubscribed from The Daily Whiz newsletter.
         You won't receive any more emails from us.
         <br/><br/>
         Changed your mind? You can always
@@ -94,7 +94,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, query, where, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   // ← Replace with your real Firebase config values
   const firebaseConfig = {
@@ -140,9 +140,9 @@
         return;
       }
 
-      // Delete all matching documents
-      const deletePromises = snap.docs.map(doc => deleteDoc(doc.ref));
-      await Promise.all(deletePromises);
+      // Update documents to mark as unsubscribed
+      const updatePromises = snap.docs.map(doc => updateDoc(doc.ref, { unsubscribed: true }));
+      await Promise.all(updatePromises);
 
       // Show success
       document.getElementById('form-section').style.display = 'none';

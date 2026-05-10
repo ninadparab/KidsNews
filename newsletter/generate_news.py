@@ -292,6 +292,10 @@ if __name__ == "__main__":
             print(f"⏭️ Skipping {email}: not their send day.")
             continue
 
+        if user_data.get('unsubscribed'):
+            print(f"⏭️ Skipping {email}: unsubscribed.")
+            continue
+
         topics = user_data.get('topics', [])
         preferences = user_data.get('preferences', '')
         if preferences:
