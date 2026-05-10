@@ -7,7 +7,7 @@
 
   "valid_topics": [
     "Science", "Space", "Animals", "Sports", "Technology",
-    "Weather", "Arts", "Environment", "Health", "History"
+    "Weather", "Arts", "Environment", "Health", "History", "World News"
   ],
 
   "topic_keywords": {
@@ -20,11 +20,12 @@
     "Arts":        ["art", "music", "film", "movie", "book", "painting", "sculpture", "theater", "dance", "poetry"],
     "Environment": ["environment", "nature", "forest", "ocean", "pollution", "recycle", "green", "carbon", "eco"],
     "Health":      ["health", "medicine", "doctor", "hospital", "vaccine", "nutrition", "fitness", "disease", "wellness"],
-    "History":     ["history", "ancient", "civilization", "museum", "archaeology", "historical", "century"]
+    "History":     ["history", "ancient", "civilization", "museum", "archaeology", "historical", "century"],
+    "World News":  ["world", "international", "news", "country", "global", "politics", "election", "government", "diplomacy"]
   },
 
   "topic_priority": [
-    "Space", "Animals", "Sports", "Weather", "Arts", "Environment", "Technology", "Science", "Health", "History"
+    "Science", "Technology", "Sports", "World News", "Health", "History", "Arts", "Weather", "Environment", "Space", "Animals"
   ],
 
   "topic_colors": {
@@ -37,7 +38,8 @@
     "Arts":        "#EF476F",
     "Environment": "#57CC99",
     "Health":      "#FF9F1C",
-    "History":     "#A8956E"
+    "History":     "#A8956E",
+    "World News":  "#6A4C93"
   },
 
   "topic_emojis": {
@@ -50,7 +52,8 @@
     "Arts":        "🎨",
     "Environment": "🌿",
     "Health":      "🏥",
-    "History":     "🏛️"
+    "History":     "🏛️",
+    "World News":  "🌍"
   },
 
   "topic_fallback_images": {
@@ -63,7 +66,8 @@
     "Arts":        "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/402px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg",
     "Environment": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Sunflower_from_Silesia2.jpg/640px-Sunflower_from_Silesia2.jpg",
     "Health":      "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Healthy_Food.jpg/640px-Healthy_Food.jpg",
-    "History":     "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/640px-Colosseo_2020.jpg"
+    "History":     "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/640px-Colosseo_2020.jpg",
+    "World News":  "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Globe_icon.svg/640px-Globe_icon.svg.png"
   },
 
   "newsletter": {

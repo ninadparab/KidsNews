@@ -65,6 +65,16 @@
       <div class="chip" data-value="Technology">Technology</div>
       <div class="chip" data-value="Arts">Arts</div>
       <div class="chip" data-value="Environment">Environment</div>
+      <div class="chip" data-value="World News">World News</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">Personalization</div>
+    <div class="field">
+      <label>Additional instructions <span style="font-weight:400;color:#aaa">(optional)</span></label>
+      <textarea id="preferences" placeholder="e.g., Focus more on sports, avoid scary animals, include local news..." rows="3" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical;"></textarea>
+      <p class="hint">Describe in natural language what kind of news your child likes or dislikes</p>
     </div>
   </div>
 
@@ -183,6 +193,7 @@
         country: document.getElementById('country').value,
         language: document.getElementById('language').value,
         frequency: getSelected('freq-chips')[0] || 'daily',
+        preferences: document.getElementById('preferences').value.trim(),
         last_sent_at: null,
         created_at: serverTimestamp()
       });

@@ -20,16 +20,16 @@ const CACHE_MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes
 const TOPIC_EMOJIS: Record<string, string> = {
   Science: '🔬', Space: '🚀', Animals: '🦁', Sports: '⚽',
   Technology: '💻', Weather: '🌤️', Arts: '🎨', Environment: '🌿',
-  Health: '🏥', History: '🏛️',
+  Health: '🏥', History: '🏛️', 'World News': '🌍',
 };
 
 const TOPIC_COLORS: Record<string, string> = {
   Science: '#4ECDC4', Space: '#9B5DE5', Animals: '#00B4D8',
   Sports: '#FF6B35', Technology: '#06D6A0', Weather: '#118AB2',
-  Arts: '#EF476F', Environment: '#57CC99', Health: '#FF9F1C', History: '#A8956E',
+  Arts: '#EF476F', Environment: '#57CC99', Health: '#FF9F1C', History: '#A8956E', 'World News': '#6A4C93',
 };
 
-const TOPICS = ['All', 'Science', 'Space', 'Animals', 'Sports', 'Technology', 'Weather', 'Arts', 'Environment'];
+const TOPICS = ['All', 'Science', 'Space', 'Animals', 'Sports', 'Technology', 'Weather', 'Arts', 'Environment', 'World News'];
 const HERO_HEIGHT = 240;
 
 interface Article {
