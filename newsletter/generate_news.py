@@ -66,6 +66,40 @@ def parse_topic(response_text):
     return None
 
 
+def interpret_preferences(preferences, selected_topics):
+    """Use Claude to interpret natural language preferences and adjust topics."""
+    if not preferences:
+        return selected_topics
+
+    prompt = f"""
+You are a news personalization assistant for kids.
+
+User selected topics: {', '.join(selected_topics)}
+User preferences: {preferences}
+
+Task: Based on the preferences, suggest an adjusted list of topics from the available topics: {', '.join(VALID_TOPICS)}
+
+Respond with a comma-separated list of topics that best match the user's interests, considering their preferences.
+
+If preferences ask to avoid certain topics, remove them.
+If preferences ask for more of something, include or prioritize those topics.
+Keep the list relevant for kids aged 6-12.
+"""
+
+    try:
+        response = client.messages.create(
+            model=_cfg['newsletter']['model'],
+            max_tokens=100,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        adjusted_topics_str = response.content[0].text.strip()
+        adjusted_topics = [t.strip() for t in adjusted_topics_str.split(',') if t.strip() in VALID_TOPICS]
+        return adjusted_topics if adjusted_topics else selected_topics
+    except Exception as e:
+        print(f"Error interpreting preferences: {e}")
+        return selected_topics
+
+
 # --- Safety ---
 def is_safe_basic(title, description):
     full_text = f"{title} {description}".lower()
@@ -259,10 +293,13 @@ if __name__ == "__main__":
             continue
 
         topics = user_data.get('topics', [])
+        preferences = user_data.get('preferences', '')
+        if preferences:
+            topics = interpret_preferences(preferences, topics)
         age_group = user_data.get('age_group', '8-10')
         country = user_data.get('country', 'us')
 
-        print(f"Processing for {email} | Age: {age_group} | Topics: {topics}")
+        print(f"Processing for {email} | Age: {age_group} | Topics: {topics} | Preferences: {preferences}")
 
         raw_articles = fetch_personalized_news(topics, country)
         articles_data = []

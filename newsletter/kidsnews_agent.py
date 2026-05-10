@@ -316,6 +316,11 @@ def send_newsletter(articles: list) -> dict:
           <p style="color:#94A3B8;font-size:12px;margin:0 0 8px;">
             Safe news for kids, trusted by parents
           </p>
+          <p style="color:#94A3B8;font-size:12px;margin:0 0 12px;">
+            <a href="https://safekidsnews.com/signup.html" style="color:#94A3B8;text-decoration:none;margin:0 8px;">Update preferences</a>
+            <span style="color:#CBD5E1;">·</span>
+            <a href="https://safekidsnews.com/unsubscribe.html" style="color:#94A3B8;text-decoration:none;margin:0 8px;">Unsubscribe</a>
+          </p>
           <p style="color:#CBD5E1;font-size:11px;margin:0;">
             &copy; 2025 The Daily Whiz &middot;
             <a href="https://www.safekidsnews.com"
