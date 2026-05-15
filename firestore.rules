@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      // Signup: anyone can create a subscription
+      allow create: if true;
+
+      // Unsubscribe: need to query by email, then update the unsubscribed flag
+      allow read: if true;
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['unsubscribed']);
+    }
+  }
+}
