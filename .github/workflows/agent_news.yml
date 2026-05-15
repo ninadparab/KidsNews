@@ -18,7 +18,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install anthropic firebase-admin sendgrid feedparser requests python-dotenv
+        run: pip install anthropic firebase-admin sendgrid feedparser requests python-dotenv newsapi-python
 
       - name: Run agent pipeline
         working-directory: newsletter
