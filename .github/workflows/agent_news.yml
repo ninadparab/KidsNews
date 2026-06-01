@@ -2,7 +2,9 @@ name: KidsNews Agent Pipeline
 
 on:
   schedule:
-    - cron: '0 15 * * *'   # 7:00 AM PST — same morning slot as daily_news
+    # Aiming for 5 AM PST / 6 AM PDT to arrive by 7 AM
+    - cron: '0 13 * * *'   # 5 AM PST (winter)
+    - cron: '0 12 * * *'   # 5 AM PDT (summer)
   workflow_dispatch:        # manual trigger from GitHub Actions tab
 
 jobs:

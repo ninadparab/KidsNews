@@ -1,7 +1,9 @@
 name: Daily Kids News Digest
 on:
   schedule:
-    - cron: '0 15 * * *'   # 7:00 AM PST (UTC-8) — morning run with newsletters
+    # Aiming for 5 AM PST / 6 AM PDT to arrive by 7 AM
+    - cron: '0 13 * * *'   # 5 AM PST (winter)
+    - cron: '0 12 * * *'   # 5 AM PDT (summer)
     - cron: '0 3 * * *'    # 7:00 PM PST (UTC-8) — evening run, news only
   workflow_dispatch:
     inputs:
